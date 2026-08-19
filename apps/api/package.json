@@ -18,7 +18,8 @@
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
     "@aman/shared": "*",
-    "qrcode": "^1.5.3"
+    "qrcode": "^1.5.3",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",

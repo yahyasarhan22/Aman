@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { scoreToGrade } from '@aman/shared';
 import { Establishment } from './establishments/establishment.entity';
@@ -22,9 +23,9 @@ async function seed() {
   const inspectionRepo = dataSource.getRepository(Inspection);
   const violationRepo = dataSource.getRepository(Violation);
 
-  await violationRepo.delete({});
-  await inspectionRepo.delete({});
-  await establishmentRepo.delete({});
+  await violationRepo.createQueryBuilder().delete().execute();
+  await inspectionRepo.createQueryBuilder().delete().execute();
+  await establishmentRepo.createQueryBuilder().delete().execute();
 
   const goldenOven = await establishmentRepo.save({
     slug: 'golden-oven-nablus',
