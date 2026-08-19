@@ -1,5 +1,6 @@
 export type Severity = 'CRITICAL' | 'MAJOR' | 'MINOR';
 export type ItemResult = 'PASS' | 'FAIL' | 'NA';
+export type Grade = 'A' | 'B' | 'C' | 'D';
 
 export interface ChecklistResult {
   severity: Severity;
@@ -36,7 +37,7 @@ export function calculateScore(items: ChecklistResult[]): number | null {
   return score;
 }
 
-export function scoreToGrade(score: number): 'A' | 'B' | 'C' | 'D' {
+export function scoreToGrade(score: number): Grade {
   if (score >= 90) return 'A';
   if (score >= 80) return 'B';
   if (score >= 60) return 'C';

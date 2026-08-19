@@ -1,9 +1,10 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Inspection } from './inspection.entity';
+import type { Grade } from '@aman/shared';
 
+export type { Grade };
 export type EstablishmentCategory = 'BUTCHER' | 'RESTAURANT' | 'BAKERY' | 'CAFE' | 'RETAIL';
 export type EstablishmentStatus = 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
-export type Grade = 'A' | 'B' | 'C' | 'D';
 
 @Entity('establishments')
 export class Establishment {

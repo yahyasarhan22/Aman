@@ -27,12 +27,13 @@
     <h2>سجل التفتيش</h2>
     <div *ngFor="let h of e.history">
       <span dir="ltr">{{ h.date | date:'yyyy-MM-dd' }}</span>
-      — {{ h.grade }} — {{ h.violationCount }} مخالفة
+      — <span dir="ltr">{{ h.grade }}</span> — <span dir="ltr">{{ h.violationCount }}</span> مخالفة
     </div>
   </section>
 
   <footer *ngIf="e.status !== 'SUSPENDED' && e.status !== 'CLOSED'">
-    <a [routerLink]="['/e', e.slug, 'complaint']">إرسال شكوى</a>
+    <!-- Complaint route arrives in Week 3; kept visible per spec but inert until then. -->
+    <span class="complaint-link-disabled">إرسال شكوى</span>
   </footer>
 
   <p class="attribution">الدرجة صادرة عن بلدية نابلس · Grade issued by Nablus Municipality</p>

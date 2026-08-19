@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+import { scoreToGrade } from '@aman/shared';
 import { Establishment } from './establishments/establishment.entity';
 import { Inspection } from './establishments/inspection.entity';
 import { Violation } from './establishments/violation.entity';
@@ -31,7 +32,7 @@ async function seed() {
     nameEn: 'Golden Oven',
     category: 'BAKERY',
     address: 'Old City, Nablus',
-    currentGrade: 'B',
+    currentGrade: scoreToGrade(82),
     currentScore: 82,
     lastInspectionAt: new Date('2026-08-05'),
     status: 'ACTIVE',
@@ -40,15 +41,15 @@ async function seed() {
   const inspection1 = await inspectionRepo.save({
     establishmentId: goldenOven.id,
     score: 82,
-    grade: 'B',
-    previousGrade: 'A',
+    grade: scoreToGrade(82),
+    previousGrade: scoreToGrade(96),
     submittedAt: new Date('2026-08-05'),
   });
-  const inspection2 = await inspectionRepo.save({
+  await inspectionRepo.save({
     establishmentId: goldenOven.id,
     score: 96,
-    grade: 'A',
-    previousGrade: 'B',
+    grade: scoreToGrade(96),
+    previousGrade: scoreToGrade(82),
     submittedAt: new Date('2026-05-14'),
   });
 
@@ -67,7 +68,7 @@ async function seed() {
     nameEn: null,
     category: 'RESTAURANT',
     address: 'Rafidia, Nablus',
-    currentGrade: 'C',
+    currentGrade: scoreToGrade(68),
     currentScore: 68,
     lastInspectionAt: new Date('2026-05-06'),
     status: 'ACTIVE',

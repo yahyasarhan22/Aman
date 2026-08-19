@@ -1,7 +1,8 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Inspection } from './inspection.entity';
+import type { Severity } from '@aman/shared';
 
-export type Severity = 'CRITICAL' | 'MAJOR' | 'MINOR';
+export type { Severity };
 export type ViolationStatus = 'OPEN' | 'OWNER_RESPONDED' | 'VERIFIED' | 'CLOSED' | 'OVERDUE';
 
 @Entity('violations')

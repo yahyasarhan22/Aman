@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import type { Grade } from '@aman/shared';
 
 const GRADE_COLORS: Record<string, string> = {
   A: '#1e8449',
@@ -37,7 +38,7 @@ const GRADE_COLORS: Record<string, string> = {
   ],
 })
 export class GradeBadgeComponent {
-  @Input() grade: 'A' | 'B' | 'C' | 'D' | null = null;
+  @Input() grade: Grade | null = null;
 
   get color(): string {
     return this.grade ? GRADE_COLORS[this.grade] : '#9e9e9e';
