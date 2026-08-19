@@ -1,0 +1,11 @@
+{
+  "name": "aman",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "test:shared": "npm run test --workspace=packages/shared",
+    "test:api": "npm run test --workspace=apps/api",
+    "dev:api": "npm run start:dev --workspace=apps/api",
+    "dev:web": "npm run start --workspace=apps/web"
+  }
+}
