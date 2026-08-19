@@ -31,7 +31,9 @@ describe('EstablishmentsService', () => {
   });
 
   it('maps an establishment to the public DTO, hiding no inspector identity fields', async () => {
+    const establishmentId = 'test-id-123';
     mockEstablishmentRepo.findOne.mockResolvedValue({
+      id: establishmentId,
       slug: 'golden-oven-nablus',
       nameAr: 'الفرن الذهبي',
       nameEn: null,
@@ -47,6 +49,7 @@ describe('EstablishmentsService', () => {
     ]);
     mockViolationRepo.find.mockResolvedValue([
       { category: 'Refrigeration', status: 'OWNER_RESPONDED' },
+      { category: 'Temperature Control', status: 'CLOSED' },
     ]);
 
     const result = await service.getPublicBySlug('golden-oven-nablus');
@@ -66,5 +69,61 @@ describe('EstablishmentsService', () => {
       ],
       status: 'ACTIVE',
     });
+
+    // Verify inspection query filters by establishment, sorts DESC, and limits to 5
+    expect(mockInspectionRepo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { establishmentId },
+        order: { submittedAt: 'DESC' },
+        take: 5,
+      }),
+    );
+
+    // Verify violation query filters by establishment
+    expect(mockViolationRepo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { establishmentId },
+      }),
+    );
+  });
+
+  it('filters out CLOSED and VERIFIED violations from public view, showing only OPEN and OWNER_RESPONDED', async () => {
+    const establishmentId = 'test-id-456';
+    mockEstablishmentRepo.findOne.mockResolvedValue({
+      id: establishmentId,
+      slug: 'pizza-palace',
+      nameAr: 'قصر البيتزا',
+      nameEn: 'Pizza Palace',
+      category: 'RESTAURANT',
+      currentGrade: 'A',
+      currentScore: 95,
+      lastInspectionAt: new Date('2026-08-19T00:00:00Z'),
+      status: 'ACTIVE',
+    });
+    mockInspectionRepo.find.mockResolvedValue([
+      { submittedAt: new Date('2026-08-19T00:00:00Z'), grade: 'A', violations: [] },
+    ]);
+    mockViolationRepo.find.mockResolvedValue([
+      { category: 'Sanitation', status: 'OPEN' },
+      { category: 'HandWashing', status: 'OWNER_RESPONDED' },
+      { category: 'Storage', status: 'CLOSED' },
+      { category: 'Pest Control', status: 'VERIFIED' },
+    ]);
+
+    const result = await service.getPublicBySlug('pizza-palace');
+
+    expect(result).not.toBeNull();
+    // Only OPEN and OWNER_RESPONDED should appear
+    expect(result!.openViolations).toEqual([
+      { category: 'Sanitation', ownerResponded: false },
+      { category: 'HandWashing', ownerResponded: true },
+    ]);
+    // Explicitly verify CLOSED and VERIFIED are NOT in the result
+    expect(result!.openViolations).not.toContainEqual(
+      expect.objectContaining({ category: 'Storage' }),
+    );
+    expect(result!.openViolations).not.toContainEqual(
+      expect.objectContaining({ category: 'Pest Control' }),
+    );
   });
 });
