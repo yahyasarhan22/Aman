@@ -1,8 +1,8 @@
-<div *ngIf="notFound" class="empty-state">
+<div *ngIf="notFound()" class="empty-state">
   <p>هذا الرمز غير مسجل — This code is not registered.</p>
 </div>
 
-<div *ngIf="establishment as e">
+<div *ngIf="establishment() as e">
   <app-grade-badge [grade]="e.grade"></app-grade-badge>
   <h1>{{ e.nameAr }}</h1>
 

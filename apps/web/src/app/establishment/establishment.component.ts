@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { GradeBadgeComponent } from '../grade-badge/grade-badge.component';
@@ -11,16 +11,16 @@ import { EstablishmentPublicDto, EstablishmentService } from './establishment.se
   templateUrl: './establishment.component.html',
 })
 export class EstablishmentComponent implements OnInit {
-  establishment: EstablishmentPublicDto | null = null;
-  notFound = false;
+  establishment = signal<EstablishmentPublicDto | null>(null);
+  notFound = signal(false);
 
   constructor(private route: ActivatedRoute, private service: EstablishmentService) {}
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug')!;
     this.service.getBySlug(slug).subscribe({
-      next: (data) => (this.establishment = data),
-      error: () => (this.notFound = true),
+      next: (data) => this.establishment.set(data),
+      error: () => this.notFound.set(true),
     });
   }
 }
