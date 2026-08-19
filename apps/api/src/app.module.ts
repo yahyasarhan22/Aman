@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EstablishmentsModule } from './establishments/establishments.module';
+import { AuthModule } from './auth/auth.module';
+import { InspectorModule } from './inspector/inspector.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -20,7 +23,10 @@ import { EstablishmentsModule } from './establishments/establishments.module';
         synchronize: true, // MVP only — replace with migrations before any real pilot
       }),
     }),
+    AuthModule,
     EstablishmentsModule,
+    InspectorModule,
+    UploadsModule,
   ],
 })
 export class AppModule {}

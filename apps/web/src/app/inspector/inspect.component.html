@@ -1,0 +1,168 @@
+@if (draft(); as d) {
+  <header class="bar">
+    <div class="bar__row">
+      <div class="bar__id">
+        <h1 class="bar__name">{{ d.bundle.establishment.nameAr }}</h1>
+        <p class="bar__section">
+          {{ t.checklist.section }}
+          <span class="ltr">{{ sectionIndex() + 1 }}</span>
+          {{ t.common.of }}
+          <span class="ltr">{{ sections().length }}</span>
+          · {{ currentSectionName() }}
+        </p>
+      </div>
+      @if (!inspector.online()) {
+        <span class="offline">{{ t.sync.offline }}</span>
+      }
+    </div>
+
+    <!-- Running score updates live so the inspector is never surprised at the
+         end (spec §5.5). -->
+    <div class="bar__meters">
+      <div class="meter">
+        <span class="meter__label">{{ t.checklist.progress }}</span>
+        <span class="meter__value ltr">{{ progress() }}%</span>
+      </div>
+      <div class="meter meter--score">
+        <span class="meter__label">{{ t.checklist.runningScore }}</span>
+        <span class="meter__value ltr">{{ runningScore() ?? '—' }}</span>
+      </div>
+    </div>
+    <div class="bar__progress"><span [style.inline-size.%]="progress()"></span></div>
+  </header>
+
+  <main class="page">
+    <ul class="items">
+      @for (item of currentItems(); track item.id) {
+        <li class="item" [class.item--unanswered]="!answer(item.id).result">
+          <div class="item__head">
+            <span class="item__code ltr">{{ item.code }}</span>
+            <span class="sev" [class]="'sev--' + item.severity">
+              {{ t.checklist.severity[item.severity] }}
+            </span>
+          </div>
+
+          <p class="item__label">{{ item.labelAr }}</p>
+
+          <div class="seg" role="radiogroup" [attr.aria-label]="item.labelAr">
+            @for (option of results; track option) {
+              <button
+                type="button"
+                role="radio"
+                class="seg__btn"
+                [class]="'seg__btn--' + option"
+                [class.seg__btn--on]="answer(item.id).result === option"
+                [attr.aria-checked]="answer(item.id).result === option"
+                (click)="setResult(item, option)"
+              >
+                {{ t.checklist.result[option] }}
+              </button>
+            }
+          </div>
+
+          @if (answer(item.id).result === 'FAIL' || (item.requiresMeasurement && answer(item.id).result === 'PASS')) {
+            <div class="item__detail">
+              @if (item.requiresMeasurement) {
+                <div class="field">
+                  <label [attr.for]="'m-' + item.id">
+                    {{ t.checklist.measured }}
+                    @if (item.unit) {
+                      <span class="ltr">({{ item.unit }})</span>
+                    }
+                  </label>
+                  <input
+                    [id]="'m-' + item.id"
+                    type="number"
+                    inputmode="decimal"
+                    dir="ltr"
+                    [value]="answer(item.id).measuredValue"
+                    (input)="setMeasured(item.id, $any($event.target).value)"
+                  />
+                </div>
+              }
+
+              @if (answer(item.id).result === 'FAIL') {
+                <div class="field">
+                  <label [attr.for]="'n-' + item.id">{{ t.checklist.note }}</label>
+                  <textarea
+                    [id]="'n-' + item.id"
+                    [placeholder]="t.checklist.notePlaceholder"
+                    [value]="answer(item.id).note"
+                    (input)="setNote(item.id, $any($event.target).value)"
+                  ></textarea>
+                </div>
+
+                <div class="photos">
+                  @for (key of answer(item.id).photos; track key) {
+                    <figure class="photo">
+                      <img [src]="photoUrl(key)" [alt]="t.checklist.photoAttached + ' — ' + item.labelAr" />
+                      <button type="button" class="photo__remove" (click)="removePhoto(item.id, key)">
+                        {{ t.checklist.removePhoto }}
+                      </button>
+                    </figure>
+                  }
+
+                  <label class="photo__add">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      (change)="addPhoto(item.id, $any($event.target))"
+                    />
+                    <span>{{ t.checklist.addPhoto }}</span>
+                  </label>
+                </div>
+
+                @if (item.severity === 'CRITICAL' && answer(item.id).photos.length === 0) {
+                  <p class="notice" role="alert">{{ t.checklist.photoRequired }}</p>
+                }
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (photoBlocked()) {
+      <!-- The red alert sits inline next to the item that can fix it; this one
+           only explains why Next is disabled. One alarm, not two. -->
+      <p class="hint">{{ t.checklist.photoRequired }}</p>
+    } @else if (incomplete()) {
+      <p class="hint">{{ t.checklist.incomplete }}</p>
+    }
+
+    <nav class="nav">
+      <button
+        type="button"
+        class="btn btn--ghost"
+        [disabled]="sectionIndex() === 0"
+        (click)="goto(sectionIndex() - 1)"
+      >
+        {{ t.common.previous }}
+      </button>
+
+      @if (sectionIndex() < sections().length - 1) {
+        <button type="button" class="btn" [disabled]="blocked()" (click)="goto(sectionIndex() + 1)">
+          {{ t.common.next }}
+        </button>
+      } @else {
+        <button type="button" class="btn" [disabled]="blocked()" (click)="toReview()">
+          {{ t.checklist.toReview }}
+        </button>
+      }
+    </nav>
+
+    <footer class="foot">
+      <span class="foot__saved">{{ t.checklist.autosaved }}</span>
+      <button type="button" class="foot__abandon" (click)="abandon()">
+        {{ t.checklist.abandon }}
+      </button>
+    </footer>
+  </main>
+} @else if (error()) {
+  <main class="page">
+    <p class="notice" role="alert">{{ error() }}</p>
+  </main>
+} @else {
+  <main class="page"><p class="muted">{{ t.common.loading }}</p></main>
+}

@@ -1,0 +1,117 @@
+@if (submitted(); as outcome) {
+  <main class="page done">
+    <app-grade-badge [grade]="outcome.grade" variant="seal" />
+    <p class="done__msg">{{ queued() ? t.review.queued : t.review.submitted }}</p>
+    <p class="done__change">
+      {{ t.review.gradeChange }}:
+      <span class="ltr">{{ outcome.previousGrade ?? '—' }} → {{ outcome.grade }}</span>
+    </p>
+    <div class="done__actions">
+      <a class="btn btn--block" [routerLink]="['/e', establishmentSlug()]">
+        {{ t.review.viewPublic }}
+      </a>
+      <a class="btn btn--ghost btn--block" routerLink="/app/today">{{ t.review.backToQueue }}</a>
+    </div>
+  </main>
+} @else if (queued()) {
+  <main class="page done">
+    <p class="done__msg">{{ t.review.queued }}</p>
+    <div class="done__actions">
+      <a class="btn btn--block" routerLink="/app/sync">{{ t.sync.title }}</a>
+      <a class="btn btn--ghost btn--block" routerLink="/app/today">{{ t.review.backToQueue }}</a>
+    </div>
+  </main>
+} @else if (draft(); as d) {
+  <header class="bar">
+    <h1 class="bar__title">{{ t.review.title }}</h1>
+    <p class="bar__sub">{{ d.bundle.establishment.nameAr }}</p>
+  </header>
+
+  <main class="page">
+    <!-- The outcome, shown before submission with the previous grade beside it
+         (spec §5.6) — no inspector should be surprised by the result. -->
+    <section class="outcome">
+      <h2 class="eyebrow">{{ t.review.outcome }}</h2>
+      <div class="outcome__row">
+        <div class="outcome__grades">
+          <app-grade-badge [grade]="d.bundle.establishment.currentGrade" variant="chip" />
+          <span class="outcome__arrow" aria-hidden="true">←</span>
+          <app-grade-badge [grade]="grade()" variant="chip" />
+        </div>
+        <div class="outcome__score">
+          <span class="outcome__label">{{ t.publicPage.score }}</span>
+          <span class="outcome__value ltr">{{ score() ?? '—' }}/100</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">{{ t.review.failedTitle }}</h2>
+      @if (failures().length === 0) {
+        <p class="muted">{{ t.review.noFailures }}</p>
+      } @else {
+        <ul class="failures">
+          @for (f of failures(); track f.item.id) {
+            <li class="failure" [class]="'failure--' + f.item.severity">
+              <div class="failure__head">
+                <span class="ltr failure__code">{{ f.item.code }}</span>
+                <span class="sev" [class]="'sev--' + f.item.severity">
+                  {{ t.checklist.severity[f.item.severity] }}
+                </span>
+                <span class="failure__deadline">
+                  {{ t.review.deadline }}:
+                  <span class="ltr">{{ f.deadline | date: 'yyyy-MM-dd' }}</span>
+                </span>
+              </div>
+
+              <p class="failure__label">{{ f.item.labelAr }}</p>
+
+              @if (f.answer.measuredValue) {
+                <p class="failure__measured">
+                  {{ t.checklist.measured }}:
+                  <span class="ltr">{{ f.answer.measuredValue }}{{ f.item.unit }}</span>
+                </p>
+              }
+
+              @if (f.answer.photos.length) {
+                <div class="failure__photos">
+                  @for (key of f.answer.photos; track key) {
+                    <img [src]="photoUrl(key)" [alt]="t.checklist.photoAttached + ' — ' + f.item.labelAr" />
+                  }
+                </div>
+              }
+
+              <div class="field">
+                <label [attr.for]="'r-' + f.item.id">{{ t.review.recommendation }}</label>
+                <textarea
+                  [id]="'r-' + f.item.id"
+                  [value]="recommendation(f.item.id)"
+                  (input)="setRecommendation(f.item.id, $any($event.target).value)"
+                ></textarea>
+                <p class="failure__hint">{{ t.review.recommendationHint }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">{{ t.review.signature }}</h2>
+      <app-signature-pad (changed)="setSignature($event)" />
+    </section>
+
+    @if (error()) {
+      <p class="notice" role="alert">{{ error() }}</p>
+    }
+
+    <section class="final">
+      <p class="final__warning">{{ t.review.confirmBody }}</p>
+      <button type="button" class="btn btn--block" [disabled]="!canSubmit()" (click)="submit()">
+        {{ busy() ? t.review.submitting : t.review.submit }}
+      </button>
+    </section>
+  </main>
+} @else {
+  <main class="page"><p class="muted">{{ t.common.loading }}</p></main>
+}

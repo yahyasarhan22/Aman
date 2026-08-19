@@ -1,0 +1,108 @@
+<header class="masthead">
+  <div class="masthead__inner">
+    <span class="masthead__mark">{{ t.app.name }}</span>
+    <span class="masthead__divider" aria-hidden="true"></span>
+    <span class="masthead__authority">{{ t.app.authority }} · {{ t.app.department }}</span>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="state">{{ t.common.loading }}</p>
+} @else if (notFound()) {
+  <section class="state state--empty">
+    <p class="state__title">{{ t.publicPage.notFound }}</p>
+    <p class="state__hint">{{ t.publicPage.notFoundHint }}</p>
+  </section>
+} @else if (establishment(); as e) {
+  <main class="record">
+    <section class="hero">
+      <app-grade-badge [grade]="e.grade" variant="seal" />
+
+      <h1 class="hero__name">{{ e.nameAr }}</h1>
+      <p class="hero__meaning">
+        {{ e.grade ? t.grade.meaning[e.grade] : t.grade.notInspected }}
+      </p>
+      @if (e.address) {
+        <p class="hero__address">{{ categoryAr() }} · {{ e.address }}</p>
+      }
+    </section>
+
+    @if (e.status === 'SUSPENDED' || e.status === 'CLOSED') {
+      <p class="notice">{{ t.publicPage.suspended }}</p>
+    }
+
+    <!-- The record strip. Field/value rows with hairline dividers are what make
+         this read as a municipal document rather than a product card. -->
+    <section class="strip" [attr.aria-label]="t.publicPage.recordTitle">
+      <dl>
+        <div class="strip__row">
+          <dt>{{ t.publicPage.lastInspection }}</dt>
+          <dd>
+            @if (e.lastInspectionAt) {
+              <span class="ltr">{{ e.lastInspectionAt | date: 'yyyy-MM-dd' }}</span>
+            } @else {
+              {{ t.publicPage.neverInspected }}
+            }
+          </dd>
+        </div>
+        <div class="strip__row">
+          <dt>{{ t.publicPage.score }}</dt>
+          <dd>
+            @if (e.score !== null) {
+              <span class="ltr">{{ e.score }}/100</span>
+            } @else {
+              {{ t.common.none }}
+            }
+          </dd>
+        </div>
+        <div class="strip__row">
+          <dt>{{ t.publicPage.openViolations }}</dt>
+          <dd><span class="ltr">{{ e.openViolations.length }}</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">{{ t.publicPage.violationsTitle }}</h2>
+      @if (e.openViolations.length === 0) {
+        <p class="block__empty">{{ t.publicPage.violationsEmpty }}</p>
+      } @else {
+        <ul class="violations">
+          @for (v of e.openViolations; track v.category) {
+            <li class="violation">
+              <p class="violation__text">{{ v.category }}</p>
+              @if (v.ownerResponded) {
+                <p class="violation__responded">{{ t.publicPage.ownerResponded }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">{{ t.publicPage.historyTitle }}</h2>
+      @if (e.history.length === 0) {
+        <p class="block__empty">{{ t.publicPage.historyEmpty }}</p>
+      } @else {
+        <ul class="history">
+          @for (h of e.history; track h.date) {
+            <li class="history__row">
+              <app-grade-badge [grade]="asGrade(h.grade)" variant="chip" />
+              <span class="ltr history__date">{{ h.date | date: 'yyyy-MM-dd' }}</span>
+              <span class="history__count">{{ violationCount(h.violationCount) }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (e.status !== 'SUSPENDED' && e.status !== 'CLOSED') {
+      <!-- The complaint route arrives in Week 3; the affordance stays visible
+           and honest about it rather than pretending to work. -->
+      <p class="soon">{{ t.publicPage.complaintSoon }}</p>
+    }
+
+    <footer class="attribution">{{ t.app.attribution }}</footer>
+  </main>
+}

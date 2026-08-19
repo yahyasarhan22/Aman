@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "apps/web/src/app/inspector/inspect.component.html"
+        ],
+        "createdAt": "2026-08-19T15:01:30.872Z",
+        "reason": "Claude: src is bound to a runtime blob: URL created from an IndexedDB-stored evidence photo (photoUrl(key)); no static src exists to verify. alt is populated from the checklist item label."
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "apps/web/src/app/inspector/review.component.html"
+        ],
+        "createdAt": "2026-08-19T15:03:05.832Z",
+        "reason": "Claude: src is bound to a runtime blob: URL created from an IndexedDB-stored evidence photo (photoUrl(key)); no static src exists to verify. alt is populated from the checklist item label."
+      }
+    ]
+  }
+}

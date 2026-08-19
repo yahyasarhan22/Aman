@@ -1,3 +1,15 @@
+/* ==========================================================================
+   Aman design system.
+
+   Two registers, one token set:
+   · the public page is a municipal record — paper, hairline rules, a stamp.
+   · the inspector app is a field tool — dense, high contrast, 44px targets.
+
+   Grade colours (§10.2) appear on grade badges and nowhere else. Risk uses a
+   deliberately darker, desaturated family so a grade badge stays the only
+   saturated colour on any screen.
+   ========================================================================== */
+
 @font-face {
   font-family: 'IBM Plex Sans Arabic';
   src: url('/fonts/IBMPlexSansArabic-Regular.woff2') format('woff2');
@@ -13,28 +25,68 @@
 }
 
 :root {
-  --color-primary: #117a65;
-  --color-primary-dark: #0f3d3e;
-  --color-surface: #f6faf9;
-  --color-surface-raised: #ffffff;
-  --color-border: #dbe6e2;
-  --color-text: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-danger: #b3261e;
-  --color-danger-surface: #fbeae8;
+  /* --- ink & paper --- */
+  --ink: #0f3d3e;
+  --ink-2: #1a1a1a;
+  --ink-muted: #5c6b68;
+  --primary: #117a65;
+  --primary-press: #0d6152;
 
+  --paper: #e8efec;
+  --card: #ffffff;
+  --inset: #f6faf9;
+
+  --rule: rgba(15, 61, 62, 0.14);
+  --rule-strong: rgba(15, 61, 62, 0.32);
+
+  /* --- grades: badges only (§10.2) --- */
+  --grade-a: #1e8449;
+  --grade-b: #b7950b;
+  --grade-c: #ca6f1e;
+  --grade-d: #a93226;
+  --grade-none: #8b9995;
+
+  /* --- risk: darker + desaturated so it never competes with a grade --- */
+  --risk-high: #6e1f2e;
+  --risk-mid: #7a5c12;
+  --risk-low: #1f5f52;
+
+  /* --- state --- */
+  --danger: #8c2f22;
+  --danger-bg: #fbeceb;
+  --ok: #1f5f52;
+  --ok-bg: #e8f3ef;
+  --warn-bg: #fdf5e3;
+  /* "needs attention" marker. Deliberately not a grade colour — reusing grade
+     orange here would cost the grade badge its instant readability (§10.2). */
+  --attention: #8a5a1f;
+
+  /* --- type --- */
   --font-body: 'IBM Plex Sans Arabic', Tahoma, 'Segoe UI', sans-serif;
+  /* Latin identifiers, readings and reference numbers sit in a mono face —
+     the vernacular of a stamped form, and it keeps digits unmistakable. */
+  --font-data: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
+  --text-seal: 96px;
+  --text-title: 24px;
+  --text-lede: 18px;
+  --text-body: 16px;
+  --text-caption: 14px;
 
-  --radius-card: 20px;
-  --radius-control: 10px;
+  /* --- space --- */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+
+  --radius: 4px;
+  --radius-lg: 10px;
+  --touch: 44px;
+
+  --shadow-card: 0 1px 2px rgba(15, 61, 62, 0.06), 0 8px 24px -16px rgba(15, 61, 62, 0.5);
 }
 
 * {
@@ -49,7 +101,157 @@ body {
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: var(--color-surface);
-  color: var(--color-text);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  background: var(--paper);
+  color: var(--ink-2);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Shared primitives
+   -------------------------------------------------------------------------- */
+
+/* Latin numerals, readings and reference codes inside Arabic prose (§10.1). */
+.ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-family: var(--font-data);
+  font-feature-settings: 'tnum' 1;
+}
+
+/* A field label. The leading rule is what makes a form read as a record. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--touch);
+  padding: 0 var(--s5);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--text-body);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--primary-press);
+}
+
+.btn:disabled {
+  background: #b8c6c2;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--inset);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.field > label {
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.field input,
+.field textarea {
+  min-height: var(--touch);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--card);
+  font: inherit;
+  color: inherit;
+}
+
+.field textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.notice {
+  padding: var(--s3) var(--s4);
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent);
+  border-radius: var(--radius);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--text-caption);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,0 +1,308 @@
+:host {
+  display: block;
+  min-block-size: 100dvh;
+  background: var(--paper);
+}
+
+/* --- sticky field header -------------------------------------------------- */
+
+.bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+  background: var(--ink);
+  color: #fff;
+  padding: var(--s3) var(--s4) 0;
+}
+
+.bar__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.bar__name {
+  font-size: var(--text-lede);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bar__section {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.offline {
+  flex: none;
+  padding: 2px var(--s2);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.bar__meters {
+  display: flex;
+  gap: var(--s5);
+  margin-block: var(--s3) var(--s2);
+}
+
+.meter {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.meter__label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.meter__value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.meter--score .meter__value {
+  color: #a7f3d0;
+}
+
+.bar__progress {
+  block-size: 3px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.bar__progress > span {
+  display: block;
+  block-size: 100%;
+  background: var(--primary);
+  transition: inline-size 160ms ease;
+}
+
+/* --- page ----------------------------------------------------------------- */
+
+.page {
+  max-inline-size: 560px;
+  margin-inline: auto;
+  padding: var(--s4) var(--s4) var(--s7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.item {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* Unanswered is the default state and it should look unfinished (spec §5.5). */
+.item--unanswered {
+  border: 1.5px dashed var(--rule-strong);
+  background: var(--inset);
+}
+
+.item__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.item__code {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.sev {
+  padding: 1px var(--s2);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sev--CRITICAL {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.sev--MAJOR {
+  background: var(--warn-bg);
+  color: #7a5c12;
+}
+
+.sev--MINOR {
+  background: var(--inset);
+  color: var(--ink-muted);
+}
+
+.item__label {
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* --- pass / fail / n-a: segmented, not radio dots (spec §10.3) ------------- */
+
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s2);
+}
+
+.seg__btn {
+  min-block-size: var(--touch);
+  border: 1.5px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--card);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.seg__btn:hover {
+  border-color: var(--ink-muted);
+}
+
+.seg__btn--PASS.seg__btn--on {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+
+.seg__btn--FAIL.seg__btn--on {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.seg__btn--NA.seg__btn--on {
+  background: var(--ink-muted);
+  border-color: var(--ink-muted);
+  color: #fff;
+}
+
+.item__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-block-start: var(--s3);
+  border-block-start: 1px solid var(--rule);
+}
+
+/* --- evidence ------------------------------------------------------------- */
+
+.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.photo {
+  margin: 0;
+  inline-size: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.photo img {
+  inline-size: 88px;
+  block-size: 88px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+}
+
+.photo__remove {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--danger);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.photo__add {
+  inline-size: 88px;
+  block-size: 88px;
+  display: grid;
+  place-items: center;
+  padding: var(--s2);
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+}
+
+.photo__add input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.photo__add:focus-within {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* --- navigation ----------------------------------------------------------- */
+
+.hint {
+  font-size: var(--text-caption);
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.nav {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: var(--s3);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding-block-start: var(--s3);
+  border-block-start: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.foot__abandon {
+  border: 0;
+  background: none;
+  padding: var(--s1) 0;
+  color: var(--danger);
+  text-decoration: underline;
+  cursor: pointer;
+}

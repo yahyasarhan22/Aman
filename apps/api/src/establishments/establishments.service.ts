@@ -37,6 +37,7 @@ export class EstablishmentsService {
       nameAr: establishment.nameAr,
       nameEn: establishment.nameEn ?? null,
       category: establishment.category,
+      address: establishment.address,
       grade: establishment.currentGrade,
       score: establishment.currentScore,
       lastInspectionAt: establishment.lastInspectionAt

@@ -2,3 +2,9 @@ node_modules/
 dist/
 .env
 /*.png
+uploads/
+.playwright-mcp/
+.angular/
+apps/api/scripts/*.js
+apps/api/scripts/*.d.ts
+.impeccable/hook.cache.json

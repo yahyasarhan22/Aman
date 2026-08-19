@@ -7,6 +7,7 @@ export interface EstablishmentPublicDto {
   nameAr: string;
   nameEn: string | null;
   category: string;
+  address: string | null;
   grade: 'A' | 'B' | 'C' | 'D' | null;
   score: number | null;
   lastInspectionAt: string | null;
