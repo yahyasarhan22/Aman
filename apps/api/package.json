@@ -17,7 +17,8 @@
     "mysql2": "^3.9.0",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "@aman/shared": "*"
+    "@aman/shared": "*",
+    "qrcode": "^1.5.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",
@@ -27,6 +28,7 @@
     "ts-jest": "^29.1.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.11.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "@types/qrcode": "^1.5.5"
   }
 }
