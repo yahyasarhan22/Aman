@@ -15,25 +15,46 @@ const GRADE_COLORS: Record<string, string> = {
   imports: [CommonModule],
   template: `
     <div
-      class="grade-badge"
-      [style.background-color]="color"
+      class="seal"
+      [style.--seal-color]="color"
       [attr.aria-label]="grade ? 'الدرجة: ' + grade : 'لم يتم التفتيش بعد'"
     >
-      {{ grade ?? '—' }}
+      <div class="seal__ring">
+        <span class="seal__letter">{{ grade ?? '—' }}</span>
+      </div>
     </div>
   `,
   styles: [
-    `.grade-badge {
-      width: 96px;
-      height: 96px;
+    `:host {
+      display: block;
+    }
+    .seal {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: var(--seal-color);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 48px;
-      font-weight: bold;
-      border-radius: 12px;
-      margin: 0 auto;
+      box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--seal-color) 55%, transparent);
+    }
+    .seal__ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.55);
+      outline: 1px solid rgba(255, 255, 255, 0.28);
+      outline-offset: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .seal__letter {
+      color: #fff;
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1;
     }`,
   ],
 })

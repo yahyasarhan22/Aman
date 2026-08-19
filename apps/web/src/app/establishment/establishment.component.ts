@@ -9,6 +9,7 @@ import { EstablishmentPublicDto, EstablishmentService } from './establishment.se
   standalone: true,
   imports: [CommonModule, GradeBadgeComponent],
   templateUrl: './establishment.component.html',
+  styleUrl: './establishment.component.css',
 })
 export class EstablishmentComponent implements OnInit {
   establishment = signal<EstablishmentPublicDto | null>(null);
