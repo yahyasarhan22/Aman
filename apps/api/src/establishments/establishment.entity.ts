@@ -17,13 +17,13 @@ export class Establishment {
   nameAr!: string;
 
   @Column({ nullable: true })
-  nameEn?: string;
+  nameEn!: string | null;
 
   @Column({ type: 'varchar' })
   category!: EstablishmentCategory;
 
   @Column({ nullable: true })
-  address?: string;
+  address!: string | null;
 
   @Column({ type: 'char', length: 1, nullable: true })
   currentGrade!: Grade | null;
