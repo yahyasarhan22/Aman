@@ -90,6 +90,17 @@ const DRAFT_PREFIX = 'draft:';
 const OUTBOX_PREFIX = 'outbox:';
 const PHOTO_PREFIX = 'photo:';
 
+const BACKOFF_BASE_MS = 5_000;
+const BACKOFF_MAX_MS = 5 * 60_000;
+/** After this many automatic attempts, stop retrying silently and let the
+ *  manual Retry button in /app/sync take over — spec §9. */
+const MAX_AUTO_ATTEMPTS = 3;
+
+/** Exported so it is testable in isolation from the timer plumbing. */
+export function backoffDelayMs(attempts: number): number {
+  return Math.min(BACKOFF_MAX_MS, BACKOFF_BASE_MS * 2 ** attempts);
+}
+
 export const emptyAnswer = (): DraftAnswer => ({
   result: null,
   measuredValue: '',
@@ -105,6 +116,8 @@ export class InspectorService {
   readonly online = signal(navigator.onLine);
   readonly pendingCount = signal(0);
   readonly queueFetchedAt = signal<string | null>(null);
+
+  private retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor() {
     addEventListener('online', () => {
@@ -256,6 +269,7 @@ export class InspectorService {
       entry.attempts = 1;
       entry.lastError = describe(error);
       await this.queueEntry(entry);
+      this.scheduleRetry(entry.attempts);
       return { result: null, queued: true };
     }
   }
@@ -314,6 +328,22 @@ export class InspectorService {
     this.pendingCount.set((await this.getOutbox()).length);
   }
 
+  /** Schedules one automatic re-drain after a backoff delay, unless the entry
+   *  has already exhausted its automatic attempts. Keyed by attempt count
+   *  rather than per-entry — this re-drains the whole outbox rather than one
+   *  entry, which is simpler than per-entry timers and correct here since a
+   *  drain that finds nothing to send is a no-op. */
+  scheduleRetry(attempts: number): void {
+    if (attempts >= MAX_AUTO_ATTEMPTS) return;
+    const key = `attempt-${attempts}`;
+    if (this.retryTimers.has(key)) return;
+    const timer = setTimeout(() => {
+      this.retryTimers.delete(key);
+      void this.drainOutbox();
+    }, backoffDelayMs(attempts));
+    this.retryTimers.set(key, timer);
+  }
+
   /** Returns how many entries went out. Never throws — a failed drain leaves
    *  the entry in place with its error visible in /app/sync. */
   async drainOutbox(): Promise<number> {
@@ -327,11 +357,13 @@ export class InspectorService {
         sent++;
       } catch (error) {
         this.auth.handleAuthError(error);
+        const attempts = value.attempts + 1;
         await idb.set(key, {
           ...value,
-          attempts: value.attempts + 1,
+          attempts,
           lastError: describe(error),
         } satisfies OutboxEntry);
+        this.scheduleRetry(attempts);
       }
     }
     await this.refreshPendingCount();

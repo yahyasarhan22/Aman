@@ -1,7 +1,9 @@
 @if (submitted(); as outcome) {
   <main class="page done">
     <app-grade-badge [grade]="outcome.grade" variant="seal" />
-    <p class="done__msg">{{ queued() ? t.review.queued : t.review.submitted }}</p>
+    <p class="done__msg">
+      {{ queued() ? t.review.queued : outcome.duplicate ? t.review.alreadyDelivered : t.review.submitted }}
+    </p>
     <p class="done__change">
       {{ t.review.gradeChange }}:
       <span class="ltr">{{ outcome.previousGrade ?? '—' }} → {{ outcome.grade }}</span>

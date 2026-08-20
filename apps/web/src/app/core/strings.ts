@@ -187,6 +187,9 @@ export const T = {
     confirmAccept: 'أرسل نهائياً',
     queued: 'لا يوجد اتصال — أُدرج التفتيش في قائمة الإرسال وسيُرسل تلقائياً.',
     submitted: 'تم إرسال التفتيش وتحديث الدرجة.',
+    // Shown when a retried submission matched one the server already had —
+    // the idempotency key did its job, so this is not a fresh success.
+    alreadyDelivered: 'كان هذا التفتيش قد وصل مسبقاً — لم يُنشأ تفتيش جديد.',
     viewPublic: 'اعرض الصفحة العامة',
     backToQueue: 'العودة إلى الجولة',
   },
