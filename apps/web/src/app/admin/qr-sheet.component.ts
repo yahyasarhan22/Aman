@@ -62,14 +62,16 @@ import { T } from '../core/strings';
         font-size: var(--text-caption);
       }
       .sheet {
-        max-inline-size: 210mm;
+        max-inline-size: 100%;
         margin-inline: auto;
-        padding: 10mm;
+        padding: var(--s4);
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 8mm;
+        gap: var(--s3);
       }
       .sticker {
+        box-sizing: border-box;
+        min-inline-size: 0;
         margin: 0;
         padding: 6mm;
         border: 1px dashed var(--rule-strong);
@@ -90,6 +92,8 @@ import { T } from '../core/strings';
         flex-direction: column;
         gap: 2mm;
         font-size: 11px;
+        max-inline-size: 100%;
+        overflow-wrap: anywhere;
       }
       /* Six per A4 page: three rows of two at this column count and image
          size, which is what the printed sheet is measured against. */
@@ -98,7 +102,9 @@ import { T } from '../core/strings';
           display: none;
         }
         .sheet {
+          max-inline-size: 210mm;
           padding: 0;
+          gap: 8mm;
         }
       }
     `,

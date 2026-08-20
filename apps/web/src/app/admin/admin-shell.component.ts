@@ -74,6 +74,7 @@ import { T } from '../core/strings';
 
       .bar__nav {
         display: flex;
+        flex-wrap: wrap;
         gap: var(--s2);
         margin-inline-start: var(--s5);
       }
