@@ -11,11 +11,18 @@ import {
 } from './complaint.entity';
 import { generateReference, isValidReference, normalizeReference } from './reference';
 import { encryptContact, hashIp } from './contact';
+import { uploadExists } from '../uploads/uploads.controller';
 
 const MAX_DESCRIPTION = 300;
 const MAX_PER_ESTABLISHMENT_PER_DAY = 3;
 const MAX_PER_IP_PER_DAY = 10;
 const REFERENCE_ATTEMPTS = 12;
+const MAX_PHOTOS = 3;
+/** Spec §5.3 deliberately makes tracking loginless, and the reference is only
+ *  four digits — 9,000 values, walkable in seconds. Statuses carry no personal
+ *  data, but the volume of complaints against a named business is not something
+ *  to hand out on request, so lookups are throttled per address. */
+const MAX_LOOKUPS_PER_HOUR = 40;
 
 export interface SubmitComplaintDto {
   slug: string;
@@ -56,6 +63,10 @@ const TIMELINE_ORDER: ComplaintStatus[] = [
 
 @Injectable()
 export class ComplaintsService {
+  /** ponytail: per-process counter, same as the login lockout. Move to a
+   *  shared store if the API ever runs more than one worker. */
+  private lookups = new Map<string, { count: number; resetAt: number }>();
+
   constructor(
     @InjectRepository(Complaint) private complaints: Repository<Complaint>,
     @InjectRepository(Establishment) private establishments: Repository<Establishment>,
@@ -98,7 +109,18 @@ export class ComplaintsService {
       throw new BadRequestException('تجاوزت الحد اليومي للشكاوى. حاول غداً.');
     }
 
-    const photoIds = dto.photoIds ?? [];
+    // Evidence triples a complaint's weight (§6.2), so an id is only evidence
+    // if this server actually wrote that file. Without the check anyone could
+    // post an invented filename and inflate the ranking at will.
+    const claimed = (dto.photoIds ?? []).slice(0, MAX_PHOTOS);
+    const photoIds: string[] = [];
+    for (const id of claimed) {
+      if (await uploadExists(id)) photoIds.push(id);
+    }
+    if (claimed.length > 0 && photoIds.length === 0) {
+      throw new BadRequestException('تعذّر التحقق من الصورة المرفقة. أعد إرفاقها.');
+    }
+
     const now = new Date();
 
     const saved = await this.saveWithUniqueReference({
@@ -145,7 +167,24 @@ export class ComplaintsService {
     throw new BadRequestException('تعذّر إنشاء رقم مرجعي. حاول مرة أخرى.');
   }
 
-  async trackByReference(input: string): Promise<ComplaintStatusDto> {
+  private throttleLookup(ip: string): void {
+    const key = hashIp(ip);
+    const now = Date.now();
+    const record = this.lookups.get(key);
+
+    if (!record || record.resetAt <= now) {
+      this.lookups.set(key, { count: 1, resetAt: now + 3_600_000 });
+      return;
+    }
+    if (record.count >= MAX_LOOKUPS_PER_HOUR) {
+      throw new BadRequestException('عدد كبير من عمليات الاستعلام. حاول بعد قليل.');
+    }
+    record.count++;
+  }
+
+  async trackByReference(input: string, ip = 'unknown'): Promise<ComplaintStatusDto> {
+    this.throttleLookup(ip);
+
     // Validate the shape before touching the database — a malformed reference
     // is a typo or a probe, and neither deserves a query.
     if (!isValidReference(input)) throw new NotFoundException('الرقم المرجعي غير صحيح.');

@@ -47,6 +47,13 @@ export function decryptContact(stored: string): string | null {
  * so it is salted with the same secret and is not reversible to an address.
  */
 export function hashIp(ip: string): string {
-  const secret = process.env.CONTACT_ENCRYPTION_KEY ?? 'aman-dev-salt';
+  // No default salt. A hardcoded fallback would ship a known salt to
+  // production, and the IP space is small enough to reverse a known-salt
+  // SHA-256 by brute force — which would turn the rate-limit column into a
+  // record of who reported whom.
+  const secret = process.env.CONTACT_ENCRYPTION_KEY;
+  if (!secret) {
+    throw new Error('CONTACT_ENCRYPTION_KEY is not set — refusing to hash client addresses');
+  }
   return createHash('sha256').update(`${secret}:${ip}`).digest('hex');
 }

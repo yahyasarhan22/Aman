@@ -1,0 +1,134 @@
+<header class="masthead">
+  <div class="masthead__inner">
+    <span class="masthead__mark">{{ t.app.name }}</span>
+    <span class="masthead__divider" aria-hidden="true"></span>
+    <span class="masthead__authority">{{ t.app.authority }} · {{ t.app.department }}</span>
+  </div>
+</header>
+
+@if (reference(); as ref) {
+  <main class="page">
+    <section class="success">
+      <p class="success__title">{{ t.complaint.successTitle }}</p>
+
+      <div class="success__ref">
+        <span class="success__ref-label">{{ t.complaint.referenceLabel }}</span>
+        <span class="success__ref-value ltr">#{{ ref }}</span>
+        <button type="button" class="btn btn--ghost" (click)="copyReference(ref)">
+          {{ copied() ? t.complaint.copied : t.complaint.copy }}
+        </button>
+      </div>
+
+      <p class="success__save">{{ t.complaint.saveNumber }}</p>
+      <p class="grade-note">{{ t.complaint.gradeNote }}</p>
+
+      <div class="actions">
+        <a class="btn btn--block" [routerLink]="['/complaint', ref]">{{ t.complaint.trackNow }}</a>
+        <a class="btn btn--ghost btn--block" [routerLink]="['/e', slug()]">
+          {{ t.complaint.backToEstablishment }}
+        </a>
+      </div>
+    </section>
+  </main>
+} @else {
+  <main class="page">
+    <h1 class="page__title">{{ t.complaint.title }}</h1>
+    <p class="page__reporting">
+      {{ t.complaint.reporting }}: <strong>{{ establishmentNameAr() || slug() }}</strong>
+    </p>
+
+    <form class="form" (ngSubmit)="submit()">
+      <fieldset class="group">
+        <legend class="eyebrow">{{ t.complaint.categoryLabel }}</legend>
+        <div class="options">
+          @for (option of categories; track option) {
+            <label class="option" [class.option--on]="category() === option">
+              <input
+                type="radio"
+                name="category"
+                [value]="option"
+                [checked]="category() === option"
+                (change)="category.set(option)"
+              />
+              <span>{{ t.complaint.category[option] }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="description">{{ t.complaint.descriptionLabel }}</label>
+        <textarea
+          id="description"
+          maxlength="300"
+          [placeholder]="t.complaint.descriptionPlaceholder"
+          [value]="description()"
+          (input)="description.set($any($event.target).value)"
+        ></textarea>
+        <p class="field__hint">
+          <span class="ltr">{{ 300 - description().length }}</span> {{ t.complaint.remaining }}
+        </p>
+      </div>
+
+      <div class="field">
+        <span class="field__label">{{ t.complaint.photoLabel }}</span>
+        <p class="field__hint">{{ t.complaint.photoHint }}</p>
+        <div class="photos">
+          @if (photoUrl(); as url) {
+            <figure class="photo">
+              <img [src]="url" [alt]="t.complaint.photoLabel" />
+              <button type="button" class="photo__remove" (click)="removePhoto()">
+                {{ t.complaint.photoRemove }}
+              </button>
+            </figure>
+          } @else {
+            <label class="photo__add">
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                (change)="addPhoto($any($event.target))"
+              />
+              <span>{{ t.complaint.photoAdd }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="phone">{{ t.complaint.phoneLabel }}</label>
+        <input
+          id="phone"
+          type="tel"
+          dir="ltr"
+          [value]="phone()"
+          (input)="phone.set($any($event.target).value)"
+        />
+        <p class="field__hint">{{ t.complaint.phoneHint }}</p>
+      </div>
+
+      <!-- Honeypot: invisible to people, irresistible to bots (§5.2, no CAPTCHA). -->
+      <label class="honeypot" aria-hidden="true">
+        <input
+          type="text"
+          tabindex="-1"
+          autocomplete="off"
+          [value]="honeypot()"
+          (input)="honeypot.set($any($event.target).value)"
+        />
+      </label>
+
+      @if (error()) {
+        <p class="notice" role="alert">{{ error() }}</p>
+      }
+
+      <p class="grade-note">{{ t.complaint.gradeNote }}</p>
+
+      <button class="btn btn--block" type="submit" [disabled]="busy() || !canSubmit()">
+        {{ busy() ? t.complaint.submitting : t.complaint.submit }}
+      </button>
+    </form>
+
+    <footer class="attribution">{{ t.app.attribution }}</footer>
+  </main>
+}

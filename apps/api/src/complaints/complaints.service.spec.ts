@@ -1,5 +1,15 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ComplaintsService, type SubmitComplaintDto } from './complaints.service';
+import * as uploads from '../uploads/uploads.controller';
+
+// Only ids this server actually wrote count as evidence. The real check hits
+// the filesystem; here we decide per-id what exists.
+let realUploads = new Set<string>();
+jest.spyOn(uploads, 'uploadExists').mockImplementation(async (id: string) => realUploads.has(id));
+
+beforeEach(() => {
+  realUploads = new Set(['img-1.jpg']);
+});
 
 function build(options: { existingCount?: number; establishment?: any | null } = {}) {
   const saved: any[] = [];
@@ -49,6 +59,25 @@ describe('ComplaintsService.submit', () => {
     const result = await service.submit(dto(), '10.0.0.1');
     expect(Object.keys(result)).toEqual(['reference']);
     expect(result.reference).toMatch(/^[0-9]{4}$/);
+  });
+
+  it('rejects an invented photo id instead of treating it as evidence', async () => {
+    // Evidence triples a complaint's weight in the Risk Score (§6.2). If a
+    // client could name any file, anyone could fabricate evidence and drive an
+    // establishment up the queue — defeating the anti-malicious-complaint
+    // weighting entirely.
+    const { service, saved } = build();
+    await expect(
+      service.submit(dto({ photoIds: ['totally-made-up.jpg'] }), '10.0.0.1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(saved).toHaveLength(0);
+  });
+
+  it('rejects a photo id shaped to escape the upload directory', async () => {
+    const { service } = build();
+    await expect(
+      service.submit(dto({ photoIds: ['../../etc/passwd'] }), '10.0.0.1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('marks a complaint with a photo as documented, which is what the risk score weights', async () => {
@@ -167,6 +196,39 @@ describe('ComplaintsService.trackByReference', () => {
   it('reports an unknown reference as not found', async () => {
     const { service } = build();
     await expect(service.trackByReference('9999')).rejects.toBeInstanceOf(NotFoundException);
+  });
+});
+
+describe('ComplaintsService.trackByReference — enumeration throttle', () => {
+  beforeAll(() => {
+    process.env.CONTACT_ENCRYPTION_KEY = 'test-key';
+  });
+
+  it('throttles repeated lookups from one address', async () => {
+    // A four-digit reference is 9,000 values. Tracking is loginless by design
+    // (§5.3), so the throttle is what stops the whole table being walked.
+    const { service } = build();
+    let refused = 0;
+
+    for (let i = 0; i < 60; i++) {
+      await service.trackByReference('9999', '10.0.0.1').catch((e) => {
+        if (e instanceof BadRequestException) refused++;
+      });
+    }
+
+    expect(refused).toBeGreaterThan(0);
+  });
+
+  it('counts each address separately', async () => {
+    const { service } = build();
+    for (let i = 0; i < 45; i++) {
+      await service.trackByReference('9999', '10.0.0.1').catch(() => undefined);
+    }
+
+    // A fresh address is unaffected: it gets a not-found, not a throttle.
+    await expect(service.trackByReference('9999', '10.0.0.2')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
 

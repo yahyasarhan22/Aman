@@ -6,18 +6,24 @@ import {
   type SubmitComplaintDto,
 } from './complaints.service';
 
+function clientIp(req: Request): string {
+  return req.ip ?? req.socket.remoteAddress ?? 'unknown';
+}
+
 @Controller('api/public/complaints')
 export class ComplaintsController {
   constructor(private readonly complaints: ComplaintsService) {}
 
   @Post()
   submit(@Body() dto: SubmitComplaintDto, @Req() req: Request): Promise<{ reference: string }> {
-    const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-    return this.complaints.submit(dto, ip);
+    return this.complaints.submit(dto, clientIp(req));
   }
 
   @Get(':reference')
-  track(@Param('reference') reference: string): Promise<ComplaintStatusDto> {
-    return this.complaints.trackByReference(reference);
+  track(
+    @Param('reference') reference: string,
+    @Req() req: Request,
+  ): Promise<ComplaintStatusDto> {
+    return this.complaints.trackByReference(reference, clientIp(req));
   }
 }
