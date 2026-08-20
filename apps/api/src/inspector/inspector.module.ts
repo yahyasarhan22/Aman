@@ -6,11 +6,13 @@ import { InspectionItem } from '../establishments/inspection-item.entity';
 import { Violation } from '../establishments/violation.entity';
 import { ChecklistVersion } from '../checklist/checklist-version.entity';
 import { ChecklistItem } from '../checklist/checklist-item.entity';
+import { RiskModule } from '../risk/risk.module';
 import { InspectorService } from './inspector.service';
 import { InspectorController } from './inspector.controller';
 
 @Module({
   imports: [
+    RiskModule,
     TypeOrmModule.forFeature([
       Establishment,
       Inspection,

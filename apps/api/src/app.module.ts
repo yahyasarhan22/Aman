@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EstablishmentsModule } from './establishments/establishments.module';
 import { AuthModule } from './auth/auth.module';
 import { InspectorModule } from './inspector/inspector.module';
+import { RiskModule } from './risk/risk.module';
 import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
@@ -24,6 +25,7 @@ import { UploadsModule } from './uploads/uploads.module';
       }),
     }),
     AuthModule,
+    RiskModule,
     EstablishmentsModule,
     InspectorModule,
     UploadsModule,

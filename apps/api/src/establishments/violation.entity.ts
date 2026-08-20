@@ -37,6 +37,13 @@ export class Violation {
   @Column({ type: 'varchar', length: 1000, nullable: true })
   recommendation!: string | null;
 
+  /** The submission date of the inspection that recorded it. The risk engine
+   *  decays by age, and deadlineAt cannot stand in for this — deadlines vary
+   *  by severity (48h vs 30 days), so using them would make a minor violation
+   *  look more recent than a critical one from the very same visit. */
+  @Column({ type: 'datetime', nullable: true })
+  occurredAt!: Date | null;
+
   @Column({ type: 'datetime', nullable: true })
   deadlineAt!: Date | null;
 

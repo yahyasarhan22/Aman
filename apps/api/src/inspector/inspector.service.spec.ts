@@ -62,6 +62,10 @@ function build() {
     { findOne: jest.fn(async () => ({ id: CHECKLIST_VERSION_ID, version: 1 })) } as any,
     { find: jest.fn(async () => definitions) } as any,
     { transaction: jest.fn(async (fn: any) => fn(manager)) } as any,
+    {
+      latestSnapshots: jest.fn(async () => new Map()),
+      recalculate: jest.fn(async () => ({ total: 0, factors: [] })),
+    } as any,
   );
 
   return { service, saved, updates, establishment, manager };

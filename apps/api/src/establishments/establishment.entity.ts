@@ -35,6 +35,12 @@ export class Establishment {
   @Column({ type: 'datetime', nullable: true })
   lastInspectionAt!: Date | null;
 
+  /** Denormalized for fast list reads (spec §7.1). The authoritative
+   *  derivation lives in risk_score_snapshots — never treat this column as
+   *  the record, only as a cached headline. */
+  @Column({ type: 'int', default: 0 })
+  currentRiskScore!: number;
+
   @Column({ type: 'varchar', default: 'ACTIVE' })
   status!: EstablishmentStatus;
 

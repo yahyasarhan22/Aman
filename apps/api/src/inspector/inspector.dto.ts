@@ -1,5 +1,14 @@
 import type { ChecklistItemDef, Grade, InspectionAnswer } from '@aman/shared';
 
+export interface RiskFactorDto {
+  key: string;
+  normalized: number;
+  weight: number;
+  contribution: number;
+  labelAr: string;
+  detailAr: string;
+}
+
 export interface QueueEntryDto {
   establishmentId: string;
   slug: string;
@@ -7,11 +16,12 @@ export interface QueueEntryDto {
   category: string;
   address: string | null;
   currentGrade: Grade | null;
-  /** 0-100. Week 2 uses the time-since-inspection proxy; the weighted §6.2
-   *  formula replaces it in Week 3 without changing this contract. */
+  /** 0-100 from the weighted §6.2 formula. */
   risk: number;
   /** Spec §5.4: the queue must always say why. */
   reasons: string[];
+  /** Full derivation, so the UI can show the factor breakdown on demand. */
+  factors: RiskFactorDto[];
 }
 
 export interface EstablishmentBundleDto {

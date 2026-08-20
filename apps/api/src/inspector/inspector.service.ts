@@ -2,14 +2,11 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Not, Repository } from 'typeorm';
 import {
-  arabicCount,
   calculateScore,
-  DAY_FORMS,
   DEADLINE_DAYS,
   deadlineFor,
   missingCriticalPhotos,
   renderRecommendation,
-  OPEN_VIOLATION_FORMS,
   scoreToGrade,
   type ChecklistItemDef,
 } from '@aman/shared';
@@ -19,27 +16,14 @@ import { InspectionItem } from '../establishments/inspection-item.entity';
 import { Violation } from '../establishments/violation.entity';
 import { ChecklistVersion } from '../checklist/checklist-version.entity';
 import { ChecklistItem } from '../checklist/checklist-item.entity';
+import { RiskService } from '../risk/risk.service';
 import type {
   EstablishmentBundleDto,
   QueueEntryDto,
+  RiskFactorDto,
   SubmitInspectionDto,
   SubmitInspectionResultDto,
 } from './inspector.dto';
-
-const CATEGORY_AR: Record<string, string> = {
-  BUTCHER: 'ملحمة',
-  RESTAURANT: 'مطعم',
-  BAKERY: 'مخبز',
-  CAFE: 'مقهى',
-  RETAIL: 'بيع مواد معلّبة',
-};
-
-const NEVER_INSPECTED_DAYS = 365;
-
-function daysSince(date: Date | null): number {
-  if (!date) return NEVER_INSPECTED_DAYS;
-  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 86_400_000));
-}
 
 @Injectable()
 export class InspectorService {
@@ -50,51 +34,42 @@ export class InspectorService {
     @InjectRepository(ChecklistVersion) private versions: Repository<ChecklistVersion>,
     @InjectRepository(ChecklistItem) private checklistItems: Repository<ChecklistItem>,
     private dataSource: DataSource,
+    private risk: RiskService,
   ) {}
 
   async getQueue(): Promise<QueueEntryDto[]> {
     const establishments = await this.establishments.find({ where: { status: 'ACTIVE' } });
-    const open = await this.violations.find({
-      where: { status: In(['OPEN', 'OWNER_RESPONDED', 'OVERDUE']) },
-    });
+    const snapshots = await this.risk.latestSnapshots(establishments.map((e) => e.id));
 
-    const openByEstablishment = new Map<string, number>();
-    for (const v of open) {
-      openByEstablishment.set(v.establishmentId, (openByEstablishment.get(v.establishmentId) ?? 0) + 1);
+    const entries: QueueEntryDto[] = [];
+    for (const e of establishments) {
+      // No snapshot means nothing has happened to this establishment since it
+      // was registered. Compute one now rather than ranking it at zero and
+      // hiding a never-inspected place at the bottom of the queue.
+      const snapshot = snapshots.get(e.id);
+      const breakdown = snapshot
+        ? { total: snapshot.total, factors: JSON.parse(snapshot.factorsJson) as RiskFactorDto[] }
+        : await this.risk.recalculate(e.id, 'MANUAL');
+
+      entries.push({
+        establishmentId: e.id,
+        slug: e.slug,
+        nameAr: e.nameAr,
+        category: e.category,
+        address: e.address,
+        currentGrade: e.currentGrade,
+        risk: breakdown.total,
+        // Spec §5.4: two or three reasons, strongest first. An inspector reads
+        // a couple of lines standing in a doorway, not a four-row table.
+        reasons: [...breakdown.factors]
+          .sort((a, b) => b.contribution - a.contribution)
+          .slice(0, 3)
+          .map((f) => f.detailAr),
+        factors: breakdown.factors,
+      });
     }
 
-    return establishments
-      .map((e) => {
-        const days = daysSince(e.lastInspectionAt);
-        const openCount = openByEstablishment.get(e.id) ?? 0;
-
-        // ponytail: Week 2 ranks on time-since-inspection plus open violations.
-        // The weighted §6.2 Risk Score (prior violations, complaint pressure,
-        // category risk) lands in Week 3 and replaces this function only —
-        // the DTO and the queue UI already speak in risk + reasons.
-        const risk = Math.min(100, Math.round((days / 180) * 100) + openCount * 10);
-
-        const reasons: string[] = [];
-        reasons.push(
-          e.lastInspectionAt
-            ? `آخر تفتيش قبل ${arabicCount(days, DAY_FORMS)}`
-            : 'لم يسبق تفتيش هذه المنشأة',
-        );
-        if (openCount > 0) reasons.push(arabicCount(openCount, OPEN_VIOLATION_FORMS));
-        reasons.push(`التصنيف: ${CATEGORY_AR[e.category] ?? e.category}`);
-
-        return {
-          establishmentId: e.id,
-          slug: e.slug,
-          nameAr: e.nameAr,
-          category: e.category,
-          address: e.address,
-          currentGrade: e.currentGrade,
-          risk,
-          reasons,
-        };
-      })
-      .sort((a, b) => b.risk - a.risk);
+    return entries.sort((a, b) => b.risk - a.risk);
   }
 
   async getBundle(establishmentId: string): Promise<EstablishmentBundleDto> {
@@ -226,7 +201,7 @@ export class InspectorService {
     const previousGrade = establishment.currentGrade;
     const submittedAt = new Date();
 
-    return this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const inspection = await manager.save(Inspection, {
         clientId: dto.clientId,
         establishmentId: establishment.id,
@@ -271,6 +246,7 @@ export class InspectorService {
               threshold: def.threshold,
               deadline: DEADLINE_DAYS[def.severity],
             }),
+          occurredAt: submittedAt,
           deadlineAt: deadlineFor(def.severity, submittedAt),
           photoIds: failure.photoIds?.length ? failure.photoIds.join(',') : null,
           status: 'OPEN',
@@ -292,5 +268,11 @@ export class InspectorService {
         duplicate: false,
       };
     });
+
+    // A completed inspection resets time-since-inspection and may add new
+    // violations, so the ranking is stale the moment it commits (§6.2).
+    await this.risk.recalculate(establishment.id, 'INSPECTION');
+
+    return result;
   }
 }

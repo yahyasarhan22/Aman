@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { deadlineFor, scoreToGrade } from '@aman/shared';
+import { calculateRisk, deadlineFor, scoreToGrade } from '@aman/shared';
 import { Establishment } from './establishments/establishment.entity';
 import { Inspection } from './establishments/inspection.entity';
 import { InspectionItem } from './establishments/inspection-item.entity';
@@ -9,6 +9,8 @@ import { Violation } from './establishments/violation.entity';
 import { ChecklistVersion } from './checklist/checklist-version.entity';
 import { ChecklistItem } from './checklist/checklist-item.entity';
 import { CHECKLIST_V1 } from './checklist/checklist.seed';
+import { RiskSnapshot } from './risk/risk-snapshot.entity';
+import { Complaint } from './complaints/complaint.entity';
 import { User } from './auth/user.entity';
 import { hashPassword } from './auth/password';
 
@@ -30,6 +32,8 @@ async function seed() {
       ChecklistVersion,
       ChecklistItem,
       User,
+      RiskSnapshot,
+      Complaint,
     ],
     synchronize: true,
   });
@@ -42,9 +46,13 @@ async function seed() {
   const versionRepo = dataSource.getRepository(ChecklistVersion);
   const checklistItemRepo = dataSource.getRepository(ChecklistItem);
   const userRepo = dataSource.getRepository(User);
+  const snapshotRepo = dataSource.getRepository(RiskSnapshot);
+  const complaintRepo = dataSource.getRepository(Complaint);
 
   // Child rows first — foreign keys point upward.
   for (const repo of [
+    snapshotRepo,
+    complaintRepo,
     inspectionItemRepo,
     violationRepo,
     inspectionRepo,
@@ -137,6 +145,7 @@ async function seed() {
     measuredValue: '8',
     recommendation:
       'اضبط التبريد إلى أقل من 4° مئوية. القراءة المسجلة: 8°. إذا تعذّر على الوحدة الثبات على الحرارة فاستبدلها خلال 2 يوماً.',
+    occurredAt: daysAgo(12),
     deadlineAt: deadlineFor('CRITICAL', daysAgo(12)),
     status: 'OWNER_RESPONDED',
     respondedAt: daysAgo(9),
@@ -177,6 +186,40 @@ async function seed() {
     lastInspectionAt: daysAgo(38),
     status: 'ACTIVE',
   });
+
+  // Compute a real snapshot for every establishment so a fresh database has a
+  // meaningful queue instead of every row sitting at zero.
+  for (const establishment of await establishmentRepo.find()) {
+    const establishmentViolations = await violationRepo.find({
+      where: { establishmentId: establishment.id },
+    });
+    const establishmentComplaints = await complaintRepo.find({
+      where: { establishmentId: establishment.id },
+    });
+
+    const breakdown = calculateRisk({
+      category: establishment.category,
+      lastInspectionAt: establishment.lastInspectionAt,
+      violations: establishmentViolations.map((v) => ({
+        severity: v.severity,
+        occurredAt: v.occurredAt ?? v.deadlineAt ?? new Date(),
+      })),
+      complaints: establishmentComplaints.map((c) => ({
+        category: c.category,
+        documented: c.hasEvidence,
+        submittedAt: c.createdAt,
+      })),
+    });
+
+    await snapshotRepo.save({
+      establishmentId: establishment.id,
+      total: breakdown.total,
+      factorsJson: JSON.stringify(breakdown.factors),
+      trigger: 'MANUAL',
+      calculatedAt: new Date(),
+    });
+    await establishmentRepo.update(establishment.id, { currentRiskScore: breakdown.total });
+  }
 
   console.log(`Seeded 4 establishments, ${items.length} checklist items, 2 users.`);
   console.log('Inspector login: inspector@nablus.ps / aman1234');
