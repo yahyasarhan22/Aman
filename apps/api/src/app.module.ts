@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { InspectorModule } from './inspector/inspector.module';
 import { RiskModule } from './risk/risk.module';
 import { ComplaintsModule } from './complaints/complaints.module';
+import { AuditModule } from './audit/audit.module';
+import { AdminModule } from './admin/admin.module';
 import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
@@ -26,9 +28,11 @@ import { UploadsModule } from './uploads/uploads.module';
       }),
     }),
     AuthModule,
+    AuditModule,
     RiskModule,
     EstablishmentsModule,
     ComplaintsModule,
+    AdminModule,
     InspectorModule,
     UploadsModule,
   ],
