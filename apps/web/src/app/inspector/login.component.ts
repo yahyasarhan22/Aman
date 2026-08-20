@@ -130,7 +130,7 @@ export class LoginComponent {
       // owner has no inspections.
       const role = this.auth.user()?.role;
       const home =
-        role === 'ADMIN' ? '/admin/complaints' : role === 'OWNER' ? '/portal' : '/app/today';
+        role === 'ADMIN' ? '/admin/dashboard' : role === 'OWNER' ? '/portal' : '/app/today';
       await this.router.navigate([home]);
     } catch {
       this.error.set(T.auth.failed);

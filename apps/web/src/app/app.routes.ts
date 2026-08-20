@@ -12,6 +12,7 @@ import { InspectComponent } from './inspector/inspect.component';
 import { ReviewComponent } from './inspector/review.component';
 import { SyncComponent } from './inspector/sync.component';
 import { AdminShellComponent } from './admin/admin-shell.component';
+import { AdminDashboardComponent } from './admin/dashboard.component';
 import { AdminComplaintsComponent } from './admin/complaints.component';
 import { AdminPlanningComponent } from './admin/planning.component';
 import { AdminSettingsComponent } from './admin/settings.component';
@@ -53,7 +54,8 @@ export const routes: Routes = [
     component: AdminShellComponent,
     canActivate: [isAdmin],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'complaints' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: 'dashboard', component: AdminDashboardComponent },
       { path: 'complaints', component: AdminComplaintsComponent },
       { path: 'planning', component: AdminPlanningComponent },
       { path: 'settings', component: AdminSettingsComponent },

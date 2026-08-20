@@ -29,7 +29,7 @@ describe('LoginComponent — role-based redirect', () => {
   it('sends an admin to a screen they actually have', async () => {
     const { fixture, navigate } = build('ADMIN');
     await fixture.componentInstance.submit();
-    expect(navigate).toHaveBeenCalledWith(['/admin/complaints']);
+    expect(navigate).toHaveBeenCalledWith(['/admin/dashboard']);
   });
 
   it('sends an owner to the portal', async () => {

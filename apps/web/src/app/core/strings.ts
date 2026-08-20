@@ -193,10 +193,28 @@ export const T = {
 
   admin: {
     title: 'إدارة البلدية',
+    navDashboard: 'لوحة المعلومات',
     navComplaints: 'الشكاوى',
     navPlanning: 'خطة التفتيش',
     navSettings: 'الإعدادات',
     loadFailed: 'تعذّر تحميل البيانات.',
+
+    dashboard: {
+      title: 'لوحة المعلومات',
+      registered: 'منشأة مسجّلة',
+      highRisk: 'أولوية مرتفعة (٧٠+)',
+      complaintsThisMonth: 'شكاوى هذا الشهر',
+      avgCloseDays: 'متوسط أيام الإغلاق',
+      noData: 'لا توجد بيانات كافية بعد.',
+      gradeDistribution: 'توزيع الدرجات',
+      complaintsOverTime: 'الشكاوى خلال آخر ١٠ أسابيع',
+      needsAttention: 'يحتاج إلى متابعة',
+      staleComplaints: 'شكوى مفتوحة أكثر من ٧ أيام',
+      overdueViolations: 'مخالفة تجاوزت المهلة ولم يُتحقق منها',
+      uninspectedEstablishments: 'منشأة لم تُفتَّش منذ ٩٠ يوماً أو أكثر',
+      allClear: 'لا يوجد ما يستدعي المتابعة حالياً.',
+      loadFailed: 'تعذّر تحميل لوحة المعلومات.',
+    },
 
     complaints: {
       title: 'فرز الشكاوى',

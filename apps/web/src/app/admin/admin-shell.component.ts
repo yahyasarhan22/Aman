@@ -16,6 +16,7 @@ import { T } from '../core/strings';
         <span class="bar__title">{{ t.admin.title }}</span>
 
         <nav class="bar__nav">
+          <a routerLink="/admin/dashboard" routerLinkActive="on">{{ t.admin.navDashboard }}</a>
           <a routerLink="/admin/complaints" routerLinkActive="on">{{ t.admin.navComplaints }}</a>
           <a routerLink="/admin/planning" routerLinkActive="on">{{ t.admin.navPlanning }}</a>
           <a routerLink="/admin/settings" routerLinkActive="on">{{ t.admin.navSettings }}</a>

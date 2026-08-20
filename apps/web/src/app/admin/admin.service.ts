@@ -64,6 +64,22 @@ export interface RiskWeightsResponse {
   updatedByLabel: string;
 }
 
+export interface DashboardData {
+  kpis: {
+    registeredCount: number;
+    highRiskCount: number;
+    complaintsThisMonth: number;
+    avgCloseDays: number | null;
+  };
+  gradeDistribution: { grade: string; count: number }[];
+  complaintsOverTime: { weekStart: string; count: number }[];
+  needsAttention: {
+    staleComplaints: number;
+    overdueViolations: number;
+    uninspectedEstablishments: number;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
@@ -117,6 +133,12 @@ export class AdminService {
         weights,
         this.options,
       ),
+    );
+  }
+
+  dashboard(): Promise<DashboardData> {
+    return firstValueFrom(
+      this.http.get<DashboardData>(`${API_BASE}/api/admin/dashboard`, this.options),
     );
   }
 }
