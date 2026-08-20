@@ -29,6 +29,7 @@ function build(rows: any[] = [complaint()]) {
   const audit = { record: jest.fn(async () => undefined) };
   const risk = {
     recalculate: jest.fn(async () => ({ total: 51, factors: [] })),
+    recalculateAll: jest.fn(async () => 1),
     latestSnapshots: jest.fn(
       async () =>
         new Map([['est-1', { establishmentId: 'est-1', total: 51, factorsJson: '[{"key":"CATEGORY"}]' }]]),
@@ -63,6 +64,10 @@ function build(rows: any[] = [complaint()]) {
     } as any,
     risk as any,
     audit as any,
+    {
+      getWeights: jest.fn(async () => require('@aman/shared').RISK_WEIGHTS),
+      updateWeights: jest.fn(async (w: any) => w),
+    } as any,
   );
 
   return { service, updates, audit, risk };
@@ -237,6 +242,25 @@ describe('AdminService.planning', () => {
     const rows = await service.planning();
     expect(rows[0]).toHaveProperty('risk', 51);
     expect(Array.isArray(rows[0].factors)).toBe(true);
+  });
+});
+
+describe('AdminService.updateRiskWeights', () => {
+  const valid = {
+    PRIOR_VIOLATIONS: 50,
+    COMPLAINT_PRESSURE: 20,
+    TIME_SINCE_INSPECTION: 20,
+    CATEGORY: 10,
+  };
+
+  it('recalculates every establishment so the queue reflects the new formula immediately', async () => {
+    // Regression: a live-server check found the queue kept showing the old
+    // ranking after a weight change, because the cached snapshots were never
+    // invalidated. An admin adjusting the formula has no other way to see it
+    // take effect.
+    const { service, risk } = build();
+    await service.updateRiskWeights(valid, 'admin-1');
+    expect(risk.recalculateAll).toHaveBeenCalled();
   });
 });
 

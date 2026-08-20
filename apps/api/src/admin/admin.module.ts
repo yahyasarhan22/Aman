@@ -4,11 +4,16 @@ import { Complaint } from '../complaints/complaint.entity';
 import { Establishment } from '../establishments/establishment.entity';
 import { User } from '../auth/user.entity';
 import { RiskModule } from '../risk/risk.module';
+import { SettingsModule } from '../settings/settings.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
 @Module({
-  imports: [RiskModule, TypeOrmModule.forFeature([Complaint, Establishment, User])],
+  imports: [
+    RiskModule,
+    SettingsModule,
+    TypeOrmModule.forFeature([Complaint, Establishment, User]),
+  ],
   providers: [AdminService],
   controllers: [AdminController],
 })

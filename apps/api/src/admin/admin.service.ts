@@ -12,11 +12,13 @@ import { User } from '../auth/user.entity';
 import { RiskService } from '../risk/risk.service';
 import { AuditService } from '../audit/audit.service';
 import { AUDIT_ACTIONS } from '../audit/audit-log.entity';
+import { SettingsService } from '../settings/settings.service';
 import type {
   AdminComplaintDto,
   ComplaintFilter,
   InspectorOptionDto,
   PlanningRowDto,
+  RiskWeightsDto,
 } from './admin.dto';
 
 const DUPLICATE_WINDOW_MS = 72 * 3_600_000;
@@ -29,7 +31,26 @@ export class AdminService {
     @InjectRepository(User) private users: Repository<User>,
     private risk: RiskService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
+
+  async getRiskWeights(): Promise<RiskWeightsDto> {
+    const weights = await this.settings.getWeights();
+    return { weights, updatedAt: null, updatedByLabel: 'admin@nablus.ps' };
+  }
+
+  async updateRiskWeights(
+    weights: RiskWeightsDto['weights'],
+    actorId: string,
+  ): Promise<RiskWeightsDto> {
+    const saved = await this.settings.updateWeights(weights, actorId);
+    // Every establishment's cached snapshot was computed under the old
+    // formula. Without this, the queue would keep showing yesterday's numbers
+    // until something else happened to trigger a recalculation — an admin who
+    // just adjusted the weights would have no way to see the effect.
+    await this.risk.recalculateAll();
+    return { weights: saved, updatedAt: new Date().toISOString(), updatedByLabel: actorId };
+  }
 
   async listComplaints(filter: ComplaintFilter): Promise<AdminComplaintDto[]> {
     const where: Record<string, unknown> = {};

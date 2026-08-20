@@ -45,6 +45,7 @@ function build(
     violationsRepo as any,
     complaintsRepo as any,
     snapshotsRepo as any,
+    { getWeights: jest.fn(async () => require('@aman/shared').RISK_WEIGHTS) } as any,
   );
 
   return {

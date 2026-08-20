@@ -51,3 +51,9 @@ export interface InspectorOptionDto {
   id: string;
   displayNameAr: string;
 }
+
+export interface RiskWeightsDto {
+  weights: import('@aman/shared').RiskWeights;
+  updatedAt: string | null;
+  updatedByLabel: string;
+}

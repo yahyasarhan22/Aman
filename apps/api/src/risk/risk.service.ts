@@ -6,6 +6,7 @@ import { Establishment } from '../establishments/establishment.entity';
 import { Violation } from '../establishments/violation.entity';
 import { Complaint } from '../complaints/complaint.entity';
 import { RiskSnapshot, type RiskTrigger } from './risk-snapshot.entity';
+import { SettingsService } from '../settings/settings.service';
 
 /**
  * Statuses representing a complaint the municipality still treats as real.
@@ -22,6 +23,7 @@ export class RiskService {
     @InjectRepository(Violation) private violations: Repository<Violation>,
     @InjectRepository(Complaint) private complaints: Repository<Complaint>,
     @InjectRepository(RiskSnapshot) private snapshots: Repository<RiskSnapshot>,
+    private settings: SettingsService,
   ) {}
 
   async recalculate(establishmentId: string, trigger: RiskTrigger): Promise<RiskBreakdown> {
@@ -33,21 +35,25 @@ export class RiskService {
       where: { establishmentId, status: In(LIVE_COMPLAINT_STATUSES) },
     });
 
-    const breakdown = calculateRisk({
-      category: establishment.category as EstablishmentCategory,
-      lastInspectionAt: establishment.lastInspectionAt,
-      violations: violations.map((v) => ({
-        severity: v.severity,
-        // Rows written before occurredAt existed fall back to the deadline —
-        // imprecise, but the alternative is dropping real history entirely.
-        occurredAt: v.occurredAt ?? v.deadlineAt ?? new Date(),
-      })),
-      complaints: complaints.map((c) => ({
-        category: c.category,
-        documented: c.hasEvidence,
-        submittedAt: c.createdAt,
-      })),
-    });
+    const weights = await this.settings.getWeights();
+    const breakdown = calculateRisk(
+      {
+        category: establishment.category as EstablishmentCategory,
+        lastInspectionAt: establishment.lastInspectionAt,
+        violations: violations.map((v) => ({
+          severity: v.severity,
+          // Rows written before occurredAt existed fall back to the deadline —
+          // imprecise, but the alternative is dropping real history entirely.
+          occurredAt: v.occurredAt ?? v.deadlineAt ?? new Date(),
+        })),
+        complaints: complaints.map((c) => ({
+          category: c.category,
+          documented: c.hasEvidence,
+          submittedAt: c.createdAt,
+        })),
+      },
+      weights,
+    );
 
     await this.snapshots.save({
       establishmentId,

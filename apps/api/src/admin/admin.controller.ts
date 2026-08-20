@@ -6,8 +6,10 @@ import type {
   ComplaintFilter,
   InspectorOptionDto,
   PlanningRowDto,
+  RiskWeightsDto,
 } from './admin.dto';
 import type { RejectionReason } from '../complaints/complaint.entity';
+import type { RiskWeights } from '@aman/shared';
 
 @Controller('api/admin')
 @UseGuards(AuthGuard)
@@ -34,6 +36,19 @@ export class AdminController {
   @Get('planning')
   planning(): Promise<PlanningRowDto[]> {
     return this.admin.planning();
+  }
+
+  @Get('settings/risk-weights')
+  getWeights(): Promise<RiskWeightsDto> {
+    return this.admin.getRiskWeights();
+  }
+
+  @Patch('settings/risk-weights')
+  updateWeights(
+    @Body() weights: RiskWeights,
+    @Req() req: AuthedRequest,
+  ): Promise<RiskWeightsDto> {
+    return this.admin.updateRiskWeights(weights, req.user!.sub);
   }
 
   @Patch('complaints/:id')
