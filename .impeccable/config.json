@@ -29,6 +29,15 @@
         ],
         "createdAt": "2026-08-20T07:24:02.068Z",
         "reason": "Claude: src is bound to a runtime blob: URL from compressPhoto (photoUrl signal); no static src exists to verify. alt is populated from the photo label string."
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "apps/web/src/app/owner/portal.component.html"
+        ],
+        "createdAt": "2026-08-20T12:12:44.589Z",
+        "reason": "Claude: src is bound to a runtime blob: URL from compressPhoto (photoUrlsFor); no static src exists to verify. alt is populated from the upload label string."
       }
     ]
   }

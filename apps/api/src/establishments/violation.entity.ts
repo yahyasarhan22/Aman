@@ -55,4 +55,19 @@ export class Violation {
 
   @Column({ type: 'datetime', nullable: true })
   respondedAt!: Date | null;
+
+  /** The owner's written response (§5.7, §7.1). Visible to admins and
+   *  inspectors; the public page shows only that a response exists. */
+  @Column({ type: 'varchar', length: 1000, nullable: true })
+  ownerResponse!: string | null;
+
+  /** Upload ids proving the fix — a photo, optionally an invoice. */
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  evidencePhotoIds!: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  verifiedById!: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  verifiedAt!: Date | null;
 }

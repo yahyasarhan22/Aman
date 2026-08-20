@@ -10,7 +10,7 @@ import { ChecklistVersion } from './checklist/checklist-version.entity';
 import { ChecklistItem } from './checklist/checklist-item.entity';
 import { CHECKLIST_V1 } from './checklist/checklist.seed';
 import { RiskSnapshot } from './risk/risk-snapshot.entity';
-import { Complaint } from './complaints/complaint.entity';
+import { Complaint, type ComplaintCategory } from './complaints/complaint.entity';
 import { User } from './auth/user.entity';
 import { hashPassword } from './auth/password';
 
@@ -84,6 +84,7 @@ async function seed() {
   const itemByCode = new Map(items.map((i) => [i.code, i]));
 
   // --- users --------------------------------------------------------------
+  // The owner account is created after goldenOven exists, further down.
   await userRepo.save([
     {
       email: 'inspector@nablus.ps',
@@ -150,6 +151,49 @@ async function seed() {
     status: 'OWNER_RESPONDED',
     respondedAt: daysAgo(9),
   });
+
+  await userRepo.save({
+    email: 'owner@golden-oven.ps',
+    passwordHash: await hashPassword('aman1234'),
+    role: 'OWNER',
+    displayNameAr: 'صاحب الفرن الذهبي',
+    establishmentId: goldenOven.id,
+  });
+
+  // §13.1 wants الفرن الذهبي at the top of the queue. Rather than writing a
+  // number in, give the formula the inputs that produce one: recent documented
+  // complaints across several categories. Every figure in the demo then traces
+  // back to a real record. The last pair is deliberately inside 72h of an
+  // earlier PESTS report so duplicate detection has something to catch.
+  const complaintSeed: { category: ComplaintCategory; hasEvidence: boolean; daysAgo: number }[] = [
+    { category: 'PESTS', hasEvidence: true, daysAgo: 3 },
+    { category: 'HYGIENE', hasEvidence: true, daysAgo: 6 },
+    { category: 'EXPIRED', hasEvidence: true, daysAgo: 11 },
+    { category: 'REFRIGERATION', hasEvidence: true, daysAgo: 17 },
+    { category: 'STAFF', hasEvidence: false, daysAgo: 24 },
+    { category: 'PESTS', hasEvidence: false, daysAgo: 2 },
+  ];
+
+  let nextReference = 4820;
+  for (const seed of complaintSeed) {
+    await complaintRepo.save({
+      reference: String(++nextReference),
+      establishmentId: goldenOven.id,
+      category: seed.category,
+      description: 'شكوى ضمن بيانات العرض التوضيحي.',
+      hasEvidence: seed.hasEvidence,
+      photoIds: null,
+      contactPhoneEncrypted: null,
+      ipHash: 'seed'.padEnd(64, '0'),
+      status: 'SUBMITTED',
+      duplicateOfId: null,
+      rejectionReason: null,
+      assignedInspectorId: null,
+      inspectionId: null,
+      createdAt: daysAgo(seed.daysAgo),
+      updatedAt: daysAgo(seed.daysAgo),
+    });
+  }
 
   await establishmentRepo.save({
     slug: 'al-salam-restaurant',
@@ -221,8 +265,12 @@ async function seed() {
     await establishmentRepo.update(establishment.id, { currentRiskScore: breakdown.total });
   }
 
-  console.log(`Seeded 4 establishments, ${items.length} checklist items, 2 users.`);
-  console.log('Inspector login: inspector@nablus.ps / aman1234');
+  console.log(
+    `Seeded 4 establishments, ${items.length} checklist items, ${complaintSeed.length} complaints, 3 users.`,
+  );
+  console.log('Inspector: inspector@nablus.ps / aman1234');
+  console.log('Admin:     admin@nablus.ps / aman1234');
+  console.log('Owner:     owner@golden-oven.ps / aman1234');
   await dataSource.destroy();
 }
 

@@ -1,0 +1,261 @@
+:host {
+  display: block;
+  min-block-size: 100dvh;
+  background: var(--paper);
+}
+
+.bar {
+  background: var(--ink);
+  color: #fff;
+  border-block-end: 3px solid var(--primary);
+}
+
+.bar__inner {
+  max-inline-size: 640px;
+  margin-inline: auto;
+  padding: var(--s3) var(--s4);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.bar__mark {
+  font-size: var(--text-lede);
+  font-weight: 700;
+}
+
+.bar__divider {
+  inline-size: 1px;
+  block-size: 18px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.bar__title {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.bar__signout {
+  margin-inline-start: auto;
+  background: none;
+  border: 0;
+  color: rgba(255, 255, 255, 0.86);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.page {
+  max-inline-size: 640px;
+  margin-inline: auto;
+  padding: var(--s5) var(--s4) var(--s7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s3);
+  text-align: center;
+}
+
+.summary__name {
+  font-size: var(--text-title);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.summary__facts {
+  display: flex;
+  gap: var(--s5);
+  margin: 0;
+}
+
+.summary__facts dt {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.summary__facts dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.grade-note {
+  padding: var(--s3);
+  background: var(--inset);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.muted {
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+}
+
+.item {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* A missed deadline is weighted by fill, not by an accent edge — the page
+   already speaks in hairlines. */
+.item--overdue {
+  background: var(--danger-bg);
+  border-color: color-mix(in srgb, var(--danger) 24%, transparent);
+}
+
+.item--resolved {
+  opacity: 0.8;
+}
+
+.item__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.sev {
+  padding: 1px var(--s2);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sev--CRITICAL {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.sev--MAJOR {
+  background: var(--warn-bg);
+  color: #7a5c12;
+}
+
+.sev--MINOR {
+  background: var(--inset);
+  color: var(--ink-muted);
+}
+
+.item__due {
+  margin-inline-start: auto;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.item__due--late {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.item__category {
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* The recommendation is the point of the whole screen, so it gets the
+   emphasis the violation text would take on an inspector's view. */
+.item__recommendation {
+  padding: var(--s3);
+  background: var(--inset);
+  border-radius: var(--radius);
+  font-size: var(--text-caption);
+  line-height: 1.6;
+}
+
+.item__recommendation-label {
+  display: block;
+  margin-block-end: var(--s1);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.item__awaiting {
+  padding: var(--s3);
+  background: var(--warn-bg);
+  border-radius: var(--radius);
+  font-size: var(--text-caption);
+  font-weight: 700;
+}
+
+.item__verified {
+  font-size: var(--text-caption);
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-block-start: var(--s3);
+  border-block-start: 1px solid var(--rule);
+}
+
+.upload__photos {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.upload__photos img {
+  inline-size: 88px;
+  block-size: 88px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+}
+
+.upload__add {
+  inline-size: 88px;
+  block-size: 88px;
+  display: grid;
+  place-items: center;
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.upload__add input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.upload__add:focus-within {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.attribution {
+  padding-block-start: var(--s4);
+  border-block-start: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--ink-muted);
+  text-align: center;
+}

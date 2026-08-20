@@ -25,6 +25,11 @@ export class InspectorController {
     return this.inspector.getBundle(id);
   }
 
+  @Post('violations/:id/verify')
+  verify(@Param('id') id: string, @Req() req: AuthedRequest): Promise<{ ok: true }> {
+    return this.inspector.verifyViolation(id, req.user!.sub);
+  }
+
   @Post('inspections')
   submit(
     @Body() dto: SubmitInspectionDto,

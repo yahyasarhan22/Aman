@@ -252,6 +252,32 @@ export const T = {
     },
   },
 
+  owner: {
+    title: 'بوابة صاحب المنشأة',
+    lastInspection: 'آخر تفتيش',
+    nextInspection: 'الزيارة القادمة',
+    notScheduled: 'غير محددة',
+    openTitle: 'بنود مطلوب معالجتها',
+    openEmpty: 'لا توجد بنود مفتوحة.',
+    resolvedTitle: 'بنود تم إغلاقها',
+    resolvedEmpty: 'لا توجد بنود مغلقة بعد.',
+    due: 'المهلة',
+    overdue: 'تجاوزت المهلة',
+    recommendation: 'الإجراء الموصى به',
+    noteLabel: 'صف ما قمت به',
+    notePlaceholder: 'مثال: تم استبدال وحدة التبريد بتاريخ ١٨/٨',
+    uploadPhoto: 'أرفق إثباتاً',
+    submit: 'إرسال الإثبات',
+    submitting: 'جارٍ الإرسال…',
+    awaitingVerification: 'بانتظار تحقق المفتش',
+    verified: 'تم التحقق من المعالجة',
+    failed: 'تعذّر إرسال الإثبات. حاول مرة أخرى.',
+    loadFailed: 'تعذّر تحميل بيانات المنشأة.',
+    // The owner needs to know effort now does not buy a grade now, or the
+    // portal reads as a broken promise.
+    gradeNote: 'إرسال الإثبات لا يغيّر الدرجة. الدرجة تتحدّث عند التفتيش القادم فقط.',
+  },
+
   sync: {
     title: 'قائمة الإرسال',
     pending: 'بانتظار الإرسال',

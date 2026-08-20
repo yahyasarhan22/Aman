@@ -66,6 +66,7 @@ function build() {
       latestSnapshots: jest.fn(async () => new Map()),
       recalculate: jest.fn(async () => ({ total: 0, factors: [] })),
     } as any,
+    { record: jest.fn(async () => undefined) } as any,
   );
 
   return { service, saved, updates, establishment, manager };
@@ -179,5 +180,46 @@ describe('InspectorService.submitInspection', () => {
     const result = await service.submitInspection(dto(), 'inspector-1');
 
     expect(result).toMatchObject({ inspectionId: 'insp-existing', grade: 'B', duplicate: true });
+  });
+});
+
+describe('InspectorService.verifyViolation', () => {
+  it('closes the violation without touching the grade (§6.4)', async () => {
+    // Verifying a fix must never raise a grade. Grades trace back to an
+    // inspection event; the score changes at the next visit, not when an owner
+    // proves they replaced a fridge.
+    const { service, updates } = build();
+    const violationUpdates: any[] = [];
+
+    (service as any).violations = {
+      findOne: jest.fn(async () => ({
+        id: 'v-1',
+        establishmentId: 'est-1',
+        status: 'OWNER_RESPONDED',
+      })),
+      update: jest.fn(async (id: string, patch: any) => {
+        violationUpdates.push({ id, patch });
+      }),
+    };
+    const recalculate = jest.fn(async () => ({ total: 20, factors: [] }));
+    (service as any).risk = { recalculate };
+    (service as any).audit = { record: jest.fn(async () => undefined) };
+
+    await service.verifyViolation('v-1', 'inspector-1');
+
+    expect(violationUpdates[0].patch).toMatchObject({
+      status: 'VERIFIED',
+      verifiedById: 'inspector-1',
+    });
+    // No establishment write happened at all, so no grade could have moved.
+    expect(updates.find((u) => u.entity === Establishment)).toBeUndefined();
+    // The queue does reorder, because a closed violation stops feeding risk.
+    expect(recalculate).toHaveBeenCalledWith('est-1', 'VERIFICATION');
+  });
+
+  it('reports an unknown violation', async () => {
+    const { service } = build();
+    (service as any).violations = { findOne: jest.fn(async () => null) };
+    await expect(service.verifyViolation('missing', 'inspector-1')).rejects.toThrow();
   });
 });

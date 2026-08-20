@@ -14,6 +14,7 @@ import { SyncComponent } from './inspector/sync.component';
 import { AdminShellComponent } from './admin/admin-shell.component';
 import { AdminComplaintsComponent } from './admin/complaints.component';
 import { AdminPlanningComponent } from './admin/planning.component';
+import { OwnerPortalComponent } from './owner/portal.component';
 
 const signedIn = () => {
   const auth = inject(AuthService);
@@ -43,6 +44,8 @@ export const routes: Routes = [
   { path: 'app/inspect/:id', component: InspectComponent, canActivate: [signedIn] },
   { path: 'app/inspect/:id/review', component: ReviewComponent, canActivate: [signedIn] },
   { path: 'app/sync', component: SyncComponent, canActivate: [signedIn] },
+
+  { path: 'portal', component: OwnerPortalComponent, canActivate: [signedIn] },
 
   {
     path: 'admin',

@@ -17,6 +17,8 @@ import { Violation } from '../establishments/violation.entity';
 import { ChecklistVersion } from '../checklist/checklist-version.entity';
 import { ChecklistItem } from '../checklist/checklist-item.entity';
 import { RiskService } from '../risk/risk.service';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS } from '../audit/audit-log.entity';
 import type {
   EstablishmentBundleDto,
   QueueEntryDto,
@@ -35,6 +37,7 @@ export class InspectorService {
     @InjectRepository(ChecklistItem) private checklistItems: Repository<ChecklistItem>,
     private dataSource: DataSource,
     private risk: RiskService,
+    private audit: AuditService,
   ) {}
 
   async getQueue(): Promise<QueueEntryDto[]> {
@@ -274,5 +277,38 @@ export class InspectorService {
     await this.risk.recalculate(establishment.id, 'INSPECTION');
 
     return result;
+  }
+
+  /**
+   * Spec §6.4: verifying a fix closes the violation but does NOT raise the
+   * grade. Grades must always trace back to an inspection event, so the score
+   * changes at the next visit and not a moment earlier. This method writes to
+   * the violation only — there is no establishment update in it, and a test
+   * asserts there never is.
+   */
+  async verifyViolation(violationId: string, inspectorId: string): Promise<{ ok: true }> {
+    const violation = await this.violations.findOne({ where: { id: violationId } });
+    if (!violation) throw new NotFoundException('المخالفة غير موجودة.');
+
+    await this.violations.update(violationId, {
+      status: 'VERIFIED',
+      verifiedById: inspectorId,
+      verifiedAt: new Date(),
+    });
+
+    await this.audit.record({
+      actorId: inspectorId,
+      action: AUDIT_ACTIONS.VIOLATION_VERIFIED,
+      entityType: 'violation',
+      entityId: violationId,
+      before: { status: violation.status },
+      after: { status: 'VERIFIED' },
+    });
+
+    // A closed violation stops feeding prior-violations pressure, so the queue
+    // reorders — but the grade is untouched.
+    await this.risk.recalculate(violation.establishmentId, 'VERIFICATION');
+
+    return { ok: true };
   }
 }

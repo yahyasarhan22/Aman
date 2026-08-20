@@ -8,6 +8,7 @@ import { RiskModule } from './risk/risk.module';
 import { ComplaintsModule } from './complaints/complaints.module';
 import { AuditModule } from './audit/audit.module';
 import { AdminModule } from './admin/admin.module';
+import { OwnerModule } from './owner/owner.module';
 import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { UploadsModule } from './uploads/uploads.module';
     EstablishmentsModule,
     ComplaintsModule,
     AdminModule,
+    OwnerModule,
     InspectorModule,
     UploadsModule,
   ],

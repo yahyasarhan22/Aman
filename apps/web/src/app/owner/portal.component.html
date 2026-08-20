@@ -1,0 +1,130 @@
+<header class="bar">
+  <div class="bar__inner">
+    <span class="bar__mark">{{ t.app.name }}</span>
+    <span class="bar__divider" aria-hidden="true"></span>
+    <span class="bar__title">{{ t.owner.title }}</span>
+    <button type="button" class="bar__signout" (click)="auth.signOut()">
+      {{ t.auth.signOut }}
+    </button>
+  </div>
+</header>
+
+@if (error() && !overview()) {
+  <main class="page"><p class="notice" role="alert">{{ error() }}</p></main>
+} @else if (overview(); as data) {
+  <main class="page">
+    <section class="summary">
+      <app-grade-badge [grade]="asGrade(data.establishment.currentGrade)" variant="seal" />
+      <h1 class="summary__name">{{ data.establishment.nameAr }}</h1>
+      <dl class="summary__facts">
+        <div>
+          <dt>{{ t.owner.lastInspection }}</dt>
+          <dd>
+            @if (data.establishment.lastInspectionAt) {
+              <span class="ltr">{{ data.establishment.lastInspectionAt | date: 'yyyy-MM-dd' }}</span>
+            } @else {
+              {{ t.publicPage.neverInspected }}
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>{{ t.owner.nextInspection }}</dt>
+          <dd>{{ t.owner.notScheduled }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <p class="grade-note">{{ t.owner.gradeNote }}</p>
+
+    @if (error()) {
+      <p class="notice" role="alert">{{ error() }}</p>
+    }
+
+    <section class="block">
+      <h2 class="eyebrow">{{ t.owner.openTitle }}</h2>
+
+      @if (data.openViolations.length === 0) {
+        <p class="muted">{{ t.owner.openEmpty }}</p>
+      }
+
+      @for (v of data.openViolations; track v.id) {
+        <article class="item" [class.item--overdue]="v.overdue">
+          <div class="item__head">
+            <span class="sev" [class]="'sev--' + v.severity">
+              {{ t.checklist.severity[v.severity] }}
+            </span>
+            @if (v.deadlineAt) {
+              <span class="item__due" [class.item__due--late]="v.overdue">
+                {{ v.overdue ? t.owner.overdue : t.owner.due }}:
+                <span class="ltr">{{ v.deadlineAt | date: 'yyyy-MM-dd' }}</span>
+              </span>
+            }
+          </div>
+
+          <p class="item__category">{{ v.category }}</p>
+
+          @if (v.recommendation) {
+            <div class="item__recommendation">
+              <span class="item__recommendation-label">{{ t.owner.recommendation }}</span>
+              <p>{{ v.recommendation }}</p>
+            </div>
+          }
+
+          @if (isAwaiting(v)) {
+            <p class="item__awaiting">{{ t.owner.awaitingVerification }}</p>
+          } @else {
+            <form class="upload" (submit)="submit($event, v.id)">
+              <div class="field">
+                <label [attr.for]="'n-' + v.id">{{ t.owner.noteLabel }}</label>
+                <textarea
+                  [id]="'n-' + v.id"
+                  [placeholder]="t.owner.notePlaceholder"
+                  [value]="noteFor(v.id)"
+                  (input)="setNote(v.id, $any($event.target).value)"
+                ></textarea>
+              </div>
+
+              <div class="upload__photos">
+                @for (url of photoUrlsFor(v.id); track url) {
+                  <img [src]="url" [alt]="t.owner.uploadPhoto" />
+                }
+                <label class="upload__add">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    (change)="addPhoto(v.id, $any($event.target))"
+                  />
+                  <span>{{ t.owner.uploadPhoto }}</span>
+                </label>
+              </div>
+
+              <button class="btn" type="submit" [disabled]="busy() === v.id">
+                {{ busy() === v.id ? t.owner.submitting : t.owner.submit }}
+              </button>
+            </form>
+          }
+        </article>
+      }
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">{{ t.owner.resolvedTitle }}</h2>
+
+      @if (data.resolvedViolations.length === 0) {
+        <p class="muted">{{ t.owner.resolvedEmpty }}</p>
+      }
+
+      @for (v of data.resolvedViolations; track v.id) {
+        <article class="item item--resolved">
+          <p class="item__category">{{ v.category }}</p>
+          <p class="item__verified">{{ t.owner.verified }}</p>
+        </article>
+      }
+    </section>
+
+    <footer class="attribution">{{ t.app.attribution }}</footer>
+  </main>
+} @else {
+  <main class="page"><p class="muted">{{ t.common.loading }}</p></main>
+}
