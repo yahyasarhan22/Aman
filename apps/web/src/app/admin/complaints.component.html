@@ -1,0 +1,134 @@
+<main class="page">
+  <div class="page__head">
+    <h1 class="page__title">{{ t.admin.complaints.title }}</h1>
+
+    <div class="filters">
+      <label class="filter">
+        <span>{{ t.admin.complaints.filterStatus }}</span>
+        <select [value]="statusFilter()" (change)="setStatus($any($event.target).value)">
+          <option value="">{{ t.admin.complaints.filterAll }}</option>
+          @for (option of statuses; track option) {
+            <option [value]="option">{{ t.admin.complaints.status[option] }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="filter">
+        <span>{{ t.admin.complaints.filterEvidence }}</span>
+        <select [value]="evidenceFilter()" (change)="setEvidence($any($event.target).value)">
+          <option value="">{{ t.admin.complaints.filterAll }}</option>
+          <option value="true">{{ t.admin.complaints.hasPhoto }}</option>
+          <option value="false">{{ t.admin.complaints.noPhoto }}</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <p class="privacy">{{ t.admin.complaints.contactWarning }}</p>
+
+  @if (error()) {
+    <p class="notice" role="alert">{{ error() }}</p>
+  } @else if (busy() && rows().length === 0) {
+    <p class="muted">{{ t.common.loading }}</p>
+  } @else if (rows().length === 0) {
+    <p class="muted">{{ t.admin.complaints.empty }}</p>
+  }
+
+  <ul class="rows">
+    @for (row of rows(); track row.id) {
+      <li
+        class="row"
+        [class.row--grouped]="row.duplicateGroupSize > 1"
+        [class.row--settled]="isSettled(row)"
+      >
+        <div class="row__main">
+          <span class="row__ref ltr">#{{ row.reference }}</span>
+
+          <div class="row__body">
+            <p class="row__establishment">{{ row.establishmentNameAr }}</p>
+            <p class="row__category">{{ t.complaint.category[row.category] }}</p>
+            <p class="row__description">{{ row.description }}</p>
+
+            @if (row.duplicateGroupSize > 1) {
+              <p class="row__group">
+                {{ t.admin.complaints.duplicateGroup }}
+                (<span class="ltr">{{ row.duplicateGroupSize }}</span
+                >) — {{ t.admin.complaints.duplicateNote }}
+              </p>
+            }
+          </div>
+
+          <div class="row__facts">
+            <span class="badge" [class.badge--on]="row.hasEvidence">
+              {{ row.hasEvidence ? t.admin.complaints.hasPhoto : t.admin.complaints.noPhoto }}
+            </span>
+            <span>
+              {{ t.admin.complaints.age }}:
+              <span class="ltr">{{ row.ageDays }}</span>
+            </span>
+            <span class="row__status">{{ t.admin.complaints.status[row.status] }}</span>
+            <span>
+              {{ t.admin.complaints.contact }}:
+              @if (row.contactPhone) {
+                <span class="ltr">{{ row.contactPhone }}</span>
+              } @else {
+                {{ t.admin.complaints.contactNone }}
+              }
+            </span>
+            @if (row.assignedInspectorNameAr) {
+              <span>{{ t.admin.complaints.assigned }}: {{ row.assignedInspectorNameAr }}</span>
+            }
+            @if (row.rejectionReason) {
+              <span class="row__reason">{{ t.admin.complaints.reason[row.rejectionReason] }}</span>
+            }
+          </div>
+        </div>
+
+        @if (!isSettled(row)) {
+          <div class="row__actions">
+            <select #inspector [attr.aria-label]="t.admin.complaints.chooseInspector">
+              <option value="">{{ t.admin.complaints.chooseInspector }}</option>
+              @for (option of inspectors(); track option.id) {
+                <option [value]="option.id">{{ option.displayNameAr }}</option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn btn--sm"
+              [disabled]="acting() === row.id"
+              (click)="assign(row, inspector.value)"
+            >
+              {{ t.admin.complaints.actionAssign }}
+            </button>
+
+            <span class="row__spacer"></span>
+
+            <select #reason [attr.aria-label]="t.admin.complaints.chooseReason">
+              <option value="">{{ t.admin.complaints.chooseReason }}</option>
+              @for (option of rejectionReasons; track option) {
+                <option [value]="option">{{ t.admin.complaints.reason[option] }}</option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn btn--sm btn--ghost"
+              [disabled]="acting() === row.id"
+              (click)="reject(row, reason.value)"
+            >
+              {{ t.admin.complaints.actionReject }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn--sm btn--ghost"
+              [disabled]="acting() === row.id"
+              (click)="close(row)"
+            >
+              {{ t.admin.complaints.actionClose }}
+            </button>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+</main>

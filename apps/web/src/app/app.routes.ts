@@ -11,11 +11,23 @@ import { TodayComponent } from './inspector/today.component';
 import { InspectComponent } from './inspector/inspect.component';
 import { ReviewComponent } from './inspector/review.component';
 import { SyncComponent } from './inspector/sync.component';
+import { AdminShellComponent } from './admin/admin-shell.component';
+import { AdminComplaintsComponent } from './admin/complaints.component';
+import { AdminPlanningComponent } from './admin/planning.component';
 
 const signedIn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   return auth.isSignedIn() ? true : router.createUrlTree(['/app/login']);
+};
+
+/** A signed-in inspector who lands here is not an error to shout about —
+ *  send them to the screen they do have. The API enforces the real boundary. */
+const isAdmin = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (!auth.isSignedIn()) return router.createUrlTree(['/app/login']);
+  return auth.user()?.role === 'ADMIN' ? true : router.createUrlTree(['/app/today']);
 };
 
 export const routes: Routes = [
@@ -31,6 +43,17 @@ export const routes: Routes = [
   { path: 'app/inspect/:id', component: InspectComponent, canActivate: [signedIn] },
   { path: 'app/inspect/:id/review', component: ReviewComponent, canActivate: [signedIn] },
   { path: 'app/sync', component: SyncComponent, canActivate: [signedIn] },
+
+  {
+    path: 'admin',
+    component: AdminShellComponent,
+    canActivate: [isAdmin],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'complaints' },
+      { path: 'complaints', component: AdminComplaintsComponent },
+      { path: 'planning', component: AdminPlanningComponent },
+    ],
+  },
 
   { path: '**', redirectTo: '' },
 ];

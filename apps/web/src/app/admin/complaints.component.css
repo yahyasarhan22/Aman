@@ -1,0 +1,184 @@
+.page {
+  max-inline-size: 1180px;
+  margin-inline: auto;
+  padding: var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
+.page__title {
+  font-size: var(--text-title);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.filters {
+  display: flex;
+  gap: var(--s3);
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.filter select,
+.row__actions select {
+  min-block-size: 34px;
+  padding: 0 var(--s2);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--card);
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+}
+
+.privacy {
+  padding: var(--s3);
+  background: var(--inset);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.muted {
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.row {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* Duplicates read as one block through a tinted ground rather than a coloured
+   edge — the page already has enough devices without inventing another. */
+.row--grouped {
+  background: var(--inset);
+}
+
+.row--settled {
+  opacity: 0.68;
+}
+
+.row__main {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
+.row__ref {
+  flex: none;
+  font-size: var(--text-lede);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.row__body {
+  flex: 1;
+  min-inline-size: 220px;
+}
+
+.row__establishment {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.row__category {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.row__description {
+  margin-block-start: var(--s2);
+  font-size: var(--text-caption);
+  line-height: 1.6;
+}
+
+.row__group {
+  margin-block-start: var(--s2);
+  font-size: 12px;
+  color: var(--attention);
+}
+
+.row__facts {
+  flex: none;
+  inline-size: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.badge {
+  align-self: flex-start;
+  padding: 1px var(--s2);
+  border-radius: 3px;
+  background: var(--inset);
+  border: 1px solid var(--rule);
+  font-weight: 700;
+}
+
+.badge--on {
+  background: var(--ok-bg);
+  border-color: transparent;
+  color: var(--ok);
+}
+
+.row__status {
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.row__reason {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  padding-block-start: var(--s3);
+  border-block-start: 1px solid var(--rule);
+}
+
+/* Pushes reject and close away from assign, so the destructive pair is not
+   adjacent to the routine one. */
+.row__spacer {
+  inline-size: var(--s5);
+}
+
+.btn--sm {
+  min-height: 34px;
+  padding: 0 var(--s3);
+  font-size: 13px;
+}

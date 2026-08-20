@@ -126,7 +126,12 @@ export class LoginComponent {
     this.busy.set(true);
     try {
       await this.auth.login(this.email, this.password);
-      await this.router.navigate(['/app/today']);
+      // One login form, three destinations — an admin has no queue and an
+      // owner has no inspections.
+      const role = this.auth.user()?.role;
+      const home =
+        role === 'ADMIN' ? '/admin/complaints' : role === 'OWNER' ? '/portal' : '/app/today';
+      await this.router.navigate([home]);
     } catch {
       this.error.set(T.auth.failed);
     } finally {
