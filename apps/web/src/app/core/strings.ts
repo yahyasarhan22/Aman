@@ -195,6 +195,7 @@ export const T = {
     title: 'إدارة البلدية',
     navComplaints: 'الشكاوى',
     navPlanning: 'خطة التفتيش',
+    navSettings: 'الإعدادات',
     loadFailed: 'تعذّر تحميل البيانات.',
 
     complaints: {
@@ -249,6 +250,22 @@ export const T = {
       refresh: 'تحديث',
       empty: 'لا توجد منشآت نشطة.',
       gradeNote: 'الأولوية ترتّب الزيارات فقط. الدرجة لا تتغيّر إلا بتفتيش.',
+    },
+
+    settings: {
+      title: 'أوزان الأولوية',
+      lede: 'الأوزان الأربعة يجب أن يجمعوا إلى 100. كل تغيير يُسجَّل في سجل التدقيق.',
+      priorViolations: 'المخالفات السابقة',
+      complaintPressure: 'ضغط الشكاوى',
+      timeSinceInspection: 'المدة منذ آخر تفتيش',
+      category: 'خطورة النشاط',
+      sum: 'المجموع',
+      sumWarning: 'المجموع يجب أن يساوي 100.',
+      save: 'حفظ',
+      saving: 'جارٍ الحفظ…',
+      saved: 'تم الحفظ.',
+      failed: 'تعذّر الحفظ.',
+      loadFailed: 'تعذّر تحميل الأوزان.',
     },
   },
 

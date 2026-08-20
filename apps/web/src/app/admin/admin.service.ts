@@ -51,6 +51,19 @@ export interface InspectorOption {
 
 export type ComplaintAction = 'assign' | 'duplicate' | 'reject' | 'close';
 
+export interface RiskWeightsPayload {
+  PRIOR_VIOLATIONS: number;
+  COMPLAINT_PRESSURE: number;
+  TIME_SINCE_INSPECTION: number;
+  CATEGORY: number;
+}
+
+export interface RiskWeightsResponse {
+  weights: RiskWeightsPayload;
+  updatedAt: string | null;
+  updatedByLabel: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
@@ -88,6 +101,22 @@ export class AdminService {
   ): Promise<{ ok: true }> {
     return firstValueFrom(
       this.http.patch<{ ok: true }>(`${API_BASE}/api/admin/complaints/${id}`, body, this.options),
+    );
+  }
+
+  getRiskWeights(): Promise<RiskWeightsResponse> {
+    return firstValueFrom(
+      this.http.get<RiskWeightsResponse>(`${API_BASE}/api/admin/settings/risk-weights`, this.options),
+    );
+  }
+
+  updateRiskWeights(weights: RiskWeightsPayload): Promise<RiskWeightsResponse> {
+    return firstValueFrom(
+      this.http.patch<RiskWeightsResponse>(
+        `${API_BASE}/api/admin/settings/risk-weights`,
+        weights,
+        this.options,
+      ),
     );
   }
 }

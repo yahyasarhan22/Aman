@@ -14,6 +14,7 @@ import { SyncComponent } from './inspector/sync.component';
 import { AdminShellComponent } from './admin/admin-shell.component';
 import { AdminComplaintsComponent } from './admin/complaints.component';
 import { AdminPlanningComponent } from './admin/planning.component';
+import { AdminSettingsComponent } from './admin/settings.component';
 import { OwnerPortalComponent } from './owner/portal.component';
 
 const signedIn = () => {
@@ -55,6 +56,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'complaints' },
       { path: 'complaints', component: AdminComplaintsComponent },
       { path: 'planning', component: AdminPlanningComponent },
+      { path: 'settings', component: AdminSettingsComponent },
     ],
   },
 
