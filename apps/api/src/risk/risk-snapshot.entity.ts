@@ -27,6 +27,13 @@ export class RiskSnapshot {
   @Column({ type: 'varchar' })
   trigger!: RiskTrigger;
 
-  @Column({ type: 'datetime' })
+  /**
+   * Millisecond precision, not the MySQL `datetime` default of whole seconds.
+   * Several events can land inside one second — three complaints filed in a
+   * row each trigger a recalculation — and at second precision the rows tie,
+   * so "latest" became whichever one the engine happened to return. That
+   * silently served a stale ranking that had counted only the first complaint.
+   */
+  @Column({ type: 'datetime', precision: 3 })
   calculatedAt!: Date;
 }

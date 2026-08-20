@@ -79,7 +79,7 @@ export class RiskService {
   async latestSnapshot(establishmentId: string): Promise<RiskSnapshot | null> {
     return this.snapshots.findOne({
       where: { establishmentId },
-      order: { calculatedAt: 'DESC' },
+      order: { calculatedAt: 'DESC', id: 'DESC' },
     });
   }
 
@@ -88,9 +88,12 @@ export class RiskService {
   async latestSnapshots(establishmentIds: string[]): Promise<Map<string, RiskSnapshot>> {
     if (establishmentIds.length === 0) return new Map();
 
+    // id is a secondary sort only to make a tie deterministic rather than
+    // arbitrary; millisecond precision on calculatedAt is what actually
+    // separates rapid recalculations.
     const rows = await this.snapshots.find({
       where: { establishmentId: In(establishmentIds) },
-      order: { calculatedAt: 'DESC' },
+      order: { calculatedAt: 'DESC', id: 'DESC' },
     });
 
     const latest = new Map<string, RiskSnapshot>();
