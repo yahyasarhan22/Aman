@@ -2,7 +2,7 @@ node_modules/
 dist/
 .env
 /*.png
-uploads/
+/apps/api/uploads/
 .playwright-mcp/
 .angular/
 apps/api/scripts/*.js
