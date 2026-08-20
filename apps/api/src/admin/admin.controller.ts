@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard, Roles, type AuthedRequest } from '../auth/auth.guard';
 import { AdminService } from './admin.service';
+import { QrService, type QrBatchEntry } from './qr.service';
 import type {
   AdminComplaintDto,
   ComplaintFilter,
@@ -16,7 +17,10 @@ import type { RiskWeights } from '@aman/shared';
 @UseGuards(AuthGuard)
 @Roles('ADMIN')
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly qr: QrService,
+  ) {}
 
   @Get('complaints')
   listComplaints(@Query() query: Record<string, string>): Promise<AdminComplaintDto[]> {
@@ -42,6 +46,13 @@ export class AdminController {
   @Get('dashboard')
   dashboard(): Promise<DashboardDto> {
     return this.admin.dashboard();
+  }
+
+  @Get('qr/batch')
+  qrBatch(@Query('baseUrl') baseUrl?: string): Promise<QrBatchEntry[]> {
+    // The frontend origin, not the API's — the QR encodes a page for a
+    // citizen's browser, and localhost:3000 would be meaningless to them.
+    return this.qr.batch(baseUrl ?? 'http://localhost:4200');
   }
 
   @Get('settings/risk-weights')

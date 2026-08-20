@@ -38,6 +38,15 @@
         ],
         "createdAt": "2026-08-20T12:12:44.589Z",
         "reason": "Claude: src is bound to a runtime blob: URL from compressPhoto (photoUrlsFor); no static src exists to verify. alt is populated from the upload label string."
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "apps/web/src/app/admin/qr-sheet.component.ts"
+        ],
+        "createdAt": "2026-08-20T17:24:29.158Z",
+        "reason": "Claude: src is bound to entry.qrDataUrl, a real base64 PNG data URL generated server-side by the qrcode package (QrService.batch); never empty or a placeholder. alt is the establishment's Arabic name."
       }
     ]
   }

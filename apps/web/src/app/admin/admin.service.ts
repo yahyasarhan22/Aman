@@ -64,6 +64,14 @@ export interface RiskWeightsResponse {
   updatedByLabel: string;
 }
 
+export interface QrEntry {
+  slug: string;
+  nameAr: string;
+  category: string;
+  publicUrl: string;
+  qrDataUrl: string;
+}
+
 export interface DashboardData {
   kpis: {
     registeredCount: number;
@@ -139,6 +147,15 @@ export class AdminService {
   dashboard(): Promise<DashboardData> {
     return firstValueFrom(
       this.http.get<DashboardData>(`${API_BASE}/api/admin/dashboard`, this.options),
+    );
+  }
+
+  qrBatch(): Promise<QrEntry[]> {
+    return firstValueFrom(
+      this.http.get<QrEntry[]>(
+        `${API_BASE}/api/admin/qr/batch?baseUrl=${encodeURIComponent(location.origin)}`,
+        this.options,
+      ),
     );
   }
 }

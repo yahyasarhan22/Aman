@@ -16,6 +16,7 @@ import { AdminDashboardComponent } from './admin/dashboard.component';
 import { AdminComplaintsComponent } from './admin/complaints.component';
 import { AdminPlanningComponent } from './admin/planning.component';
 import { AdminSettingsComponent } from './admin/settings.component';
+import { AdminQrSheetComponent } from './admin/qr-sheet.component';
 import { OwnerPortalComponent } from './owner/portal.component';
 
 const signedIn = () => {
@@ -59,6 +60,7 @@ export const routes: Routes = [
       { path: 'complaints', component: AdminComplaintsComponent },
       { path: 'planning', component: AdminPlanningComponent },
       { path: 'settings', component: AdminSettingsComponent },
+      { path: 'qr', component: AdminQrSheetComponent },
     ],
   },
 

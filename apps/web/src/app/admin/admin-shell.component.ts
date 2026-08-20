@@ -20,6 +20,7 @@ import { T } from '../core/strings';
           <a routerLink="/admin/complaints" routerLinkActive="on">{{ t.admin.navComplaints }}</a>
           <a routerLink="/admin/planning" routerLinkActive="on">{{ t.admin.navPlanning }}</a>
           <a routerLink="/admin/settings" routerLinkActive="on">{{ t.admin.navSettings }}</a>
+          <a routerLink="/admin/qr" routerLinkActive="on">{{ t.admin.navQr }}</a>
         </nav>
 
         <span class="bar__user">{{ auth.user()?.displayNameAr }}</span>

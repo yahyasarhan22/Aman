@@ -197,7 +197,16 @@ export const T = {
     navComplaints: 'الشكاوى',
     navPlanning: 'خطة التفتيش',
     navSettings: 'الإعدادات',
+    navQr: 'رموز الاستجابة',
     loadFailed: 'تعذّر تحميل البيانات.',
+
+    qr: {
+      title: 'ملصقات رموز الاستجابة',
+      lede: 'ستة ملصقات في كل صفحة A4. استخدم طباعة المتصفح ثم "حفظ كملف PDF".',
+      print: 'طباعة',
+      loadFailed: 'تعذّر تحميل الرموز.',
+      empty: 'لا توجد منشآت نشطة.',
+    },
 
     dashboard: {
       title: 'لوحة المعلومات',

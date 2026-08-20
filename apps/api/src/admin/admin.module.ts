@@ -8,6 +8,7 @@ import { RiskModule } from '../risk/risk.module';
 import { SettingsModule } from '../settings/settings.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
+import { QrService } from './qr.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { AdminController } from './admin.controller';
     SettingsModule,
     TypeOrmModule.forFeature([Complaint, Establishment, Violation, User]),
   ],
-  providers: [AdminService],
+  providers: [AdminService, QrService],
   controllers: [AdminController],
 })
 export class AdminModule {}
