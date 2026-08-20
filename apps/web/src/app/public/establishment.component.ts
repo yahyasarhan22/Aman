@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { VIOLATION_FORMS, arabicCount, type Grade } from '@aman/shared';
 import { GradeBadgeComponent } from '../ui/grade-badge.component';
 import { EstablishmentPublicDto, EstablishmentService } from './establishment.service';
@@ -18,7 +18,7 @@ const CATEGORY_AR: Record<string, string> = {
   selector: 'app-establishment',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, GradeBadgeComponent],
+  imports: [DatePipe, RouterLink, GradeBadgeComponent],
   templateUrl: './establishment.component.html',
   styleUrl: './establishment.component.css',
 })

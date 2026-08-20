@@ -80,7 +80,14 @@ export class ComplaintFormComponent {
     }
   }
 
-  async submit(): Promise<void> {
+  /**
+   * Bound to the native submit event, not ngSubmit: this component holds its
+   * state in signals and never touches ngModel, so pulling in FormsModule just
+   * to get NgForm would be dead weight. Without NgForm, (ngSubmit) silently
+   * never fires and the browser performs a real GET navigation instead.
+   */
+  async submit(event: Event): Promise<void> {
+    event.preventDefault();
     if (!this.canSubmit()) return;
     this.busy.set(true);
     this.error.set(null);

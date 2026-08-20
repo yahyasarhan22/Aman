@@ -98,9 +98,9 @@
     </section>
 
     @if (e.status !== 'SUSPENDED' && e.status !== 'CLOSED') {
-      <!-- The complaint route arrives in Week 3; the affordance stays visible
-           and honest about it rather than pretending to work. -->
-      <p class="soon">{{ t.publicPage.complaintSoon }}</p>
+      <a class="btn btn--block complaint-cta" [routerLink]="['/e', e.slug, 'complaint']">
+        {{ t.publicPage.complaintCta }}
+      </a>
     }
 
     <footer class="attribution">{{ t.app.attribution }}</footer>

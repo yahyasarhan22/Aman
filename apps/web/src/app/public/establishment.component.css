@@ -180,13 +180,8 @@
   color: var(--ink-muted);
 }
 
-.soon {
-  padding: var(--s3);
-  text-align: center;
-  font-size: var(--text-caption);
-  color: var(--ink-muted);
-  border: 1px dashed var(--rule-strong);
-  border-radius: var(--radius);
+.complaint-cta {
+  text-decoration: none;
 }
 
 .attribution {

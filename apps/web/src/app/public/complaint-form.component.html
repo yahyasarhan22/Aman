@@ -37,7 +37,7 @@
       {{ t.complaint.reporting }}: <strong>{{ establishmentNameAr() || slug() }}</strong>
     </p>
 
-    <form class="form" (ngSubmit)="submit()">
+    <form class="form" (submit)="submit($event)">
       <fieldset class="group">
         <legend class="eyebrow">{{ t.complaint.categoryLabel }}</legend>
         <div class="options">
