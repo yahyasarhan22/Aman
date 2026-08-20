@@ -10,9 +10,11 @@ import { ChecklistVersion } from './checklist/checklist-version.entity';
 import { ChecklistItem } from './checklist/checklist-item.entity';
 import { CHECKLIST_V1 } from './checklist/checklist.seed';
 import { RiskSnapshot } from './risk/risk-snapshot.entity';
+import { RiskWeightsRow } from './settings/risk-weights.entity';
 import { Complaint, type ComplaintCategory } from './complaints/complaint.entity';
 import { User } from './auth/user.entity';
 import { hashPassword } from './auth/password';
+import { RISK_WEIGHTS, type RiskWeights } from '@aman/shared';
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000);
 
@@ -33,6 +35,7 @@ async function seed() {
       ChecklistItem,
       User,
       RiskSnapshot,
+      RiskWeightsRow,
       Complaint,
     ],
     synchronize: true,
@@ -47,6 +50,7 @@ async function seed() {
   const checklistItemRepo = dataSource.getRepository(ChecklistItem);
   const userRepo = dataSource.getRepository(User);
   const snapshotRepo = dataSource.getRepository(RiskSnapshot);
+  const riskWeightsRepo = dataSource.getRepository(RiskWeightsRow);
   const complaintRepo = dataSource.getRepository(Complaint);
 
   // Child rows first — foreign keys point upward.
@@ -231,6 +235,109 @@ async function seed() {
     status: 'ACTIVE',
   });
 
+  // §13.1 wants 15 establishments across all five categories, spread across
+  // grades A-D plus one never inspected. Eleven more, on top of the four
+  // above, reach that count.
+  const moreEstablishments: {
+    slug: string;
+    nameAr: string;
+    category: 'BUTCHER' | 'RESTAURANT' | 'BAKERY' | 'CAFE' | 'RETAIL';
+    address: string;
+    score: number | null;
+    daysAgo: number | null;
+  }[] = [
+    { slug: 'nablus-grill', nameAr: 'مشاوي نابلس', category: 'RESTAURANT', address: 'رفيديا، نابلس', score: 88, daysAgo: 20 },
+    { slug: 'al-quds-cafe', nameAr: 'مقهى القدس', category: 'CAFE', address: 'وسط البلد، نابلس', score: 95, daysAgo: 5 },
+    { slug: 'zaman-sweets', nameAr: 'حلويات زمان', category: 'RETAIL', address: 'البلدة القديمة، نابلس', score: 91, daysAgo: 45 },
+    { slug: 'nabulsi-cheese', nameAr: 'مصنع الجبنة النابلسية', category: 'RETAIL', address: 'جبل النار، نابلس', score: 73, daysAgo: 60 },
+    { slug: 'al-noor-butcher', nameAr: 'ملحمة النور', category: 'BUTCHER', address: 'رفيديا، نابلس', score: 55, daysAgo: 15 },
+    { slug: 'city-bakery', nameAr: 'مخبز المدينة', category: 'BAKERY', address: 'عسكر، نابلس', score: 82, daysAgo: 30 },
+    { slug: 'al-manara-cafe', nameAr: 'مقهى المنارة', category: 'CAFE', address: 'وسط البلد، نابلس', score: 67, daysAgo: 75 },
+    { slug: 'balata-grill', nameAr: 'مشاوي بلاطة', category: 'RESTAURANT', address: 'مخيم بلاطة، نابلس', score: 48, daysAgo: 100 },
+    { slug: 'hillside-market', nameAr: 'سوبرماركت التلة', category: 'RETAIL', address: 'جبل جرزيم، نابلس', score: 90, daysAgo: 10 },
+    { slug: 'al-yasmeen-butcher', nameAr: 'ملحمة الياسمين', category: 'BUTCHER', address: 'عسكر، نابلس', score: 78, daysAgo: 40 },
+    { slug: 'downtown-bakery', nameAr: 'مخبز وسط البلد', category: 'BAKERY', address: 'وسط البلد، نابلس', score: null, daysAgo: null },
+  ];
+
+  for (const e of moreEstablishments) {
+    await establishmentRepo.save({
+      slug: e.slug,
+      nameAr: e.nameAr,
+      nameEn: null,
+      category: e.category,
+      address: e.address,
+      currentGrade: e.score === null ? null : scoreToGrade(e.score),
+      currentScore: e.score,
+      lastInspectionAt: e.daysAgo === null ? null : daysAgo(e.daysAgo),
+      status: 'ACTIVE',
+    });
+  }
+
+  // §13.1: 45 complaints across the last 30 days, some deliberately
+  // duplicated within 72h. الفرن الذهبي already has 6 from the block above;
+  // this fills in the remaining ~39 across the other 14 establishments.
+  const allOtherSlugs = [
+    'al-salam-restaurant',
+    'nour-bakery',
+    'jabal-butcher',
+    ...moreEstablishments.map((e) => e.slug),
+  ];
+  const complaintCategories: ComplaintCategory[] = [
+    'HYGIENE',
+    'EXPIRED',
+    'REFRIGERATION',
+    'STAFF',
+    'PESTS',
+    'OTHER',
+  ];
+
+  for (let i = 0; i < 39; i++) {
+    const slug = allOtherSlugs[i % allOtherSlugs.length];
+    const establishment = await establishmentRepo.findOne({ where: { slug } });
+    if (!establishment) continue;
+
+    const dayOffset = i % 30;
+    // Every fifth complaint repeats the previous slug's category within 48h,
+    // seeding a second duplicate cluster beyond الفرن الذهبي's.
+    const category =
+      i % 5 === 0 && i > 0
+        ? complaintCategories[(i - 1) % complaintCategories.length]
+        : complaintCategories[i % complaintCategories.length];
+
+    await complaintRepo.save({
+      reference: String(++nextReference),
+      establishmentId: establishment.id,
+      category,
+      description: 'شكوى ضمن بيانات العرض التوضيحي.',
+      hasEvidence: i % 3 === 0,
+      photoIds: null,
+      contactPhoneEncrypted: null,
+      ipHash: 'seed'.padEnd(64, '0'),
+      status: i % 10 === 0 ? 'CLOSED' : 'SUBMITTED',
+      duplicateOfId: null,
+      rejectionReason: null,
+      assignedInspectorId: null,
+      inspectionId: null,
+      createdAt: daysAgo(dayOffset),
+      updatedAt: daysAgo(Math.max(0, dayOffset - 1)),
+    });
+  }
+
+  // Read whatever weights an admin already persisted (Week 4 settings
+  // screen), rather than always recomputing under the package default. A
+  // reseed after adjusting weights should not silently diverge from what
+  // /admin/settings shows until some unrelated event triggers a
+  // recalculation.
+  const savedWeights = await riskWeightsRepo.findOne({ where: { id: 'current' } });
+  const weights: RiskWeights = savedWeights
+    ? {
+        PRIOR_VIOLATIONS: savedWeights.priorViolations,
+        COMPLAINT_PRESSURE: savedWeights.complaintPressure,
+        TIME_SINCE_INSPECTION: savedWeights.timeSinceInspection,
+        CATEGORY: savedWeights.category,
+      }
+    : RISK_WEIGHTS;
+
   // Compute a real snapshot for every establishment so a fresh database has a
   // meaningful queue instead of every row sitting at zero.
   for (const establishment of await establishmentRepo.find()) {
@@ -241,19 +348,22 @@ async function seed() {
       where: { establishmentId: establishment.id },
     });
 
-    const breakdown = calculateRisk({
-      category: establishment.category,
-      lastInspectionAt: establishment.lastInspectionAt,
-      violations: establishmentViolations.map((v) => ({
-        severity: v.severity,
-        occurredAt: v.occurredAt ?? v.deadlineAt ?? new Date(),
-      })),
-      complaints: establishmentComplaints.map((c) => ({
-        category: c.category,
-        documented: c.hasEvidence,
-        submittedAt: c.createdAt,
-      })),
-    });
+    const breakdown = calculateRisk(
+      {
+        category: establishment.category,
+        lastInspectionAt: establishment.lastInspectionAt,
+        violations: establishmentViolations.map((v) => ({
+          severity: v.severity,
+          occurredAt: v.occurredAt ?? v.deadlineAt ?? new Date(),
+        })),
+        complaints: establishmentComplaints.map((c) => ({
+          category: c.category,
+          documented: c.hasEvidence,
+          submittedAt: c.createdAt,
+        })),
+      },
+      weights,
+    );
 
     await snapshotRepo.save({
       establishmentId: establishment.id,
@@ -265,8 +375,10 @@ async function seed() {
     await establishmentRepo.update(establishment.id, { currentRiskScore: breakdown.total });
   }
 
+  const establishmentCount = await establishmentRepo.count();
+  const complaintCount = await complaintRepo.count();
   console.log(
-    `Seeded 4 establishments, ${items.length} checklist items, ${complaintSeed.length} complaints, 3 users.`,
+    `Seeded ${establishmentCount} establishments, ${items.length} checklist items, ${complaintCount} complaints, 3 users.`,
   );
   console.log('Inspector: inspector@nablus.ps / aman1234');
   console.log('Admin:     admin@nablus.ps / aman1234');
