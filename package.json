@@ -8,11 +8,12 @@
   "scripts": {
     "build:shared": "npm run build --workspace=packages/shared",
     "test:shared": "npm run test --workspace=packages/shared",
-    "test:api": "npm run test --workspace=apps/api",
+    "test:api": "npm run build:shared && npm run test --workspace=apps/api",
+    "test:web": "npm run build:shared && npm run test --workspace=apps/web",
     "dev:api": "npm run build:shared && npm run start:dev --workspace=apps/api",
     "dev:web": "npm run build:shared && npm run start --workspace=apps/web",
     "seed": "npm run build:shared && npm run seed --workspace=apps/api",
-    "test": "npm run test:shared && npm run test:api",
+    "test": "npm run test:shared && npm run test:api && npm run test:web",
     "build": "npm run build:shared && npm run build --workspace=apps/api && npm run build --workspace=apps/web"
   }
 }

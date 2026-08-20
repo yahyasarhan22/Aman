@@ -73,12 +73,10 @@ The public pages (`/`, `/e/:slug`, complaint form and tracking) need no login.
 ## Tests
 
 ```bash
-npm run test:shared
-npm run test:api
-npm run test --workspace=apps/web
+npm test
 ```
 
-Or `npm test` for shared + API together. All three suites are green as of the last commit (52 + 114 + 24 tests).
+Or run one package at a time: `npm run test:shared`, `npm run test:api`, `npm run test:web`. All three suites are green as of the last commit (52 + 114 + 24 tests).
 
 ## Scope
 
