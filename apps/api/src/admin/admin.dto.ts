@@ -57,3 +57,34 @@ export interface RiskWeightsDto {
   updatedAt: string | null;
   updatedByLabel: string;
 }
+
+export interface DashboardKpisDto {
+  registeredCount: number;
+  highRiskCount: number;
+  complaintsThisMonth: number;
+  avgCloseDays: number | null;
+}
+
+export interface GradeDistributionDto {
+  grade: 'A' | 'B' | 'C' | 'D';
+  count: number;
+}
+
+export interface ComplaintsOverTimeDto {
+  /** ISO date of the start of the 7-day bucket. */
+  weekStart: string;
+  count: number;
+}
+
+export interface NeedsAttentionDto {
+  staleComplaints: number;
+  overdueViolations: number;
+  uninspectedEstablishments: number;
+}
+
+export interface DashboardDto {
+  kpis: DashboardKpisDto;
+  gradeDistribution: GradeDistributionDto[];
+  complaintsOverTime: ComplaintsOverTimeDto[];
+  needsAttention: NeedsAttentionDto;
+}

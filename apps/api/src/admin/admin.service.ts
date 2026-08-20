@@ -8,6 +8,7 @@ import {
 } from '../complaints/complaint.entity';
 import { decryptContact } from '../complaints/contact';
 import { Establishment } from '../establishments/establishment.entity';
+import { Violation } from '../establishments/violation.entity';
 import { User } from '../auth/user.entity';
 import { RiskService } from '../risk/risk.service';
 import { AuditService } from '../audit/audit.service';
@@ -16,18 +17,25 @@ import { SettingsService } from '../settings/settings.service';
 import type {
   AdminComplaintDto,
   ComplaintFilter,
+  DashboardDto,
   InspectorOptionDto,
   PlanningRowDto,
   RiskWeightsDto,
 } from './admin.dto';
 
 const DUPLICATE_WINDOW_MS = 72 * 3_600_000;
+const HIGH_RISK_THRESHOLD = 70;
+const STALE_COMPLAINT_DAYS = 7;
+const UNINSPECTED_DAYS = 90;
+const CHART_WEEKS = 10;
+const SETTLED_STATUSES = ['CLOSED', 'DUPLICATE', 'REJECTED'];
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Complaint) private complaints: Repository<Complaint>,
     @InjectRepository(Establishment) private establishments: Repository<Establishment>,
+    @InjectRepository(Violation) private violationsRepo: Repository<Violation>,
     @InjectRepository(User) private users: Repository<User>,
     private risk: RiskService,
     private audit: AuditService,
@@ -241,5 +249,78 @@ export class AdminService {
   async inspectors(): Promise<InspectorOptionDto[]> {
     const rows = await this.users.find({ where: { role: 'INSPECTOR' } });
     return rows.map((u) => ({ id: u.id, displayNameAr: u.displayNameAr }));
+  }
+
+  /** Spec §5.8: numbers first, then "what is falling through the cracks" —
+   *  the needs-attention block is the one an admin actually opens the
+   *  dashboard for daily, so every figure here is a real query, not a mock. */
+  async dashboard(): Promise<DashboardDto> {
+    const establishments = await this.establishments.find({ where: { status: 'ACTIVE' } });
+    const complaints = await this.complaints.find();
+    const violations = await this.violationsRepo.find();
+    const now = Date.now();
+
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    const gradeCounts: Record<'A' | 'B' | 'C' | 'D', number> = { A: 0, B: 0, C: 0, D: 0 };
+    for (const e of establishments) {
+      if (e.currentGrade) gradeCounts[e.currentGrade as 'A' | 'B' | 'C' | 'D']++;
+    }
+
+    const weeks: { weekStart: string; count: number }[] = [];
+    for (let i = CHART_WEEKS - 1; i >= 0; i--) {
+      const end = now - i * 7 * 86_400_000;
+      const start = end - 7 * 86_400_000;
+      const count = complaints.filter(
+        (c) => c.createdAt.getTime() >= start && c.createdAt.getTime() < end,
+      ).length;
+      weeks.push({ weekStart: new Date(start).toISOString().slice(0, 10), count });
+    }
+
+    const closed = complaints.filter((c) => SETTLED_STATUSES.includes(c.status));
+    const closeDurations = closed.map(
+      (c) => (c.updatedAt.getTime() - c.createdAt.getTime()) / 86_400_000,
+    );
+    const avgCloseDays =
+      closeDurations.length === 0
+        ? null
+        : Math.round((closeDurations.reduce((a, b) => a + b, 0) / closeDurations.length) * 10) / 10;
+
+    return {
+      kpis: {
+        registeredCount: establishments.length,
+        highRiskCount: establishments.filter((e) => e.currentRiskScore >= HIGH_RISK_THRESHOLD)
+          .length,
+        complaintsThisMonth: complaints.filter(
+          (c) => c.createdAt.getTime() >= monthStart.getTime(),
+        ).length,
+        avgCloseDays,
+      },
+      gradeDistribution: (['A', 'B', 'C', 'D'] as const).map((grade) => ({
+        grade,
+        count: gradeCounts[grade],
+      })),
+      complaintsOverTime: weeks,
+      needsAttention: {
+        staleComplaints: complaints.filter(
+          (c) =>
+            !SETTLED_STATUSES.includes(c.status) &&
+            now - c.createdAt.getTime() > STALE_COMPLAINT_DAYS * 86_400_000,
+        ).length,
+        overdueViolations: violations.filter(
+          (v) =>
+            v.status !== 'VERIFIED' &&
+            v.status !== 'CLOSED' &&
+            v.deadlineAt !== null &&
+            v.deadlineAt.getTime() < now,
+        ).length,
+        uninspectedEstablishments: establishments.filter(
+          (e) =>
+            !e.lastInspectionAt || now - e.lastInspectionAt.getTime() > UNINSPECTED_DAYS * 86_400_000,
+        ).length,
+      },
+    };
   }
 }

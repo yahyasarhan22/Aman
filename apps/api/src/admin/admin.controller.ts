@@ -4,6 +4,7 @@ import { AdminService } from './admin.service';
 import type {
   AdminComplaintDto,
   ComplaintFilter,
+  DashboardDto,
   InspectorOptionDto,
   PlanningRowDto,
   RiskWeightsDto,
@@ -36,6 +37,11 @@ export class AdminController {
   @Get('planning')
   planning(): Promise<PlanningRowDto[]> {
     return this.admin.planning();
+  }
+
+  @Get('dashboard')
+  dashboard(): Promise<DashboardDto> {
+    return this.admin.dashboard();
   }
 
   @Get('settings/risk-weights')

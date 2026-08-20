@@ -58,6 +58,7 @@ function build(rows: any[] = [complaint()]) {
         },
       ]),
     } as any,
+    { find: jest.fn(async () => []) } as any,
     {
       find: jest.fn(async () => [{ id: 'insp-1', displayNameAr: 'سامي', role: 'INSPECTOR' }]),
       findOne: jest.fn(async () => ({ id: 'insp-1', role: 'INSPECTOR' })),
@@ -261,6 +262,129 @@ describe('AdminService.updateRiskWeights', () => {
     const { service, risk } = build();
     await service.updateRiskWeights(valid, 'admin-1');
     expect(risk.recalculateAll).toHaveBeenCalled();
+  });
+});
+
+describe('AdminService.dashboard', () => {
+  const NOW = new Date('2026-08-20T12:00:00Z');
+
+  function establishmentRow(over: Record<string, unknown> = {}) {
+    return {
+      id: 'est-x',
+      currentGrade: 'A',
+      currentRiskScore: 10,
+      lastInspectionAt: new Date('2026-08-01T00:00:00Z'),
+      status: 'ACTIVE',
+      ...over,
+    };
+  }
+
+  function complaintRow(over: Record<string, unknown> = {}) {
+    return {
+      id: 'c-x',
+      status: 'SUBMITTED',
+      createdAt: new Date('2026-08-15T00:00:00Z'),
+      updatedAt: new Date('2026-08-15T00:00:00Z'),
+      ...over,
+    };
+  }
+
+  it('counts high-risk establishments at 70 and above (§5.4 band)', async () => {
+    const { service } = build([complaintRow()]);
+    (service as any).establishments.find = jest.fn(async () => [
+      establishmentRow({ id: 'a', currentRiskScore: 70 }),
+      establishmentRow({ id: 'b', currentRiskScore: 69 }),
+    ]);
+    (service as any).violationsRepo = { find: jest.fn(async () => []) };
+
+    const result = await service.dashboard();
+
+    expect(result.kpis.registeredCount).toBe(2);
+    expect(result.kpis.highRiskCount).toBe(1);
+  });
+
+  it('counts complaints created in the current calendar month', async () => {
+    const { service } = build([
+      complaintRow({ id: 'in-month', createdAt: new Date('2026-08-05T00:00:00Z') }),
+      complaintRow({ id: 'out-of-month', createdAt: new Date('2026-07-05T00:00:00Z') }),
+    ]);
+    (service as any).establishments.find = jest.fn(async () => []);
+    (service as any).violationsRepo = { find: jest.fn(async () => []) };
+    jest.useFakeTimers().setSystemTime(NOW);
+
+    const result = await service.dashboard();
+
+    expect(result.kpis.complaintsThisMonth).toBe(1);
+    jest.useRealTimers();
+  });
+
+  it('flags establishments not inspected in 90+ days, including never-inspected ones', async () => {
+    const { service } = build([]);
+    (service as any).establishments.find = jest.fn(async () => [
+      establishmentRow({ id: 'stale', lastInspectionAt: new Date('2026-01-01T00:00:00Z') }),
+      establishmentRow({ id: 'never', lastInspectionAt: null }),
+      establishmentRow({ id: 'fresh', lastInspectionAt: new Date('2026-08-10T00:00:00Z') }),
+    ]);
+    (service as any).violationsRepo = { find: jest.fn(async () => []) };
+    jest.useFakeTimers().setSystemTime(NOW);
+
+    const result = await service.dashboard();
+
+    expect(result.needsAttention.uninspectedEstablishments).toBe(2);
+    jest.useRealTimers();
+  });
+
+  it('flags violations past their deadline that are still not verified or closed', async () => {
+    const { service } = build([]);
+    (service as any).establishments.find = jest.fn(async () => []);
+    (service as any).violationsRepo = {
+      find: jest.fn(async () => [
+        { id: 'v1', status: 'OPEN', deadlineAt: new Date('2026-08-01T00:00:00Z') },
+        { id: 'v2', status: 'VERIFIED', deadlineAt: new Date('2026-08-01T00:00:00Z') },
+        { id: 'v3', status: 'OPEN', deadlineAt: new Date('2026-09-01T00:00:00Z') },
+      ]),
+    };
+    jest.useFakeTimers().setSystemTime(NOW);
+
+    const result = await service.dashboard();
+
+    expect(result.needsAttention.overdueViolations).toBe(1);
+    jest.useRealTimers();
+  });
+
+  it('flags complaints open longer than 7 days that are not yet settled', async () => {
+    const { service } = build([
+      complaintRow({ id: 'stale', status: 'SUBMITTED', createdAt: new Date('2026-08-01T00:00:00Z') }),
+      complaintRow({ id: 'settled', status: 'CLOSED', createdAt: new Date('2026-08-01T00:00:00Z') }),
+      complaintRow({ id: 'fresh', status: 'SUBMITTED', createdAt: new Date('2026-08-19T00:00:00Z') }),
+    ]);
+    (service as any).establishments.find = jest.fn(async () => []);
+    (service as any).violationsRepo = { find: jest.fn(async () => []) };
+    jest.useFakeTimers().setSystemTime(NOW);
+
+    const result = await service.dashboard();
+
+    expect(result.needsAttention.staleComplaints).toBe(1);
+    jest.useRealTimers();
+  });
+
+  it('groups grade distribution across A/B/C/D, ignoring never-inspected establishments', async () => {
+    const { service } = build([]);
+    (service as any).establishments.find = jest.fn(async () => [
+      establishmentRow({ id: 'a1', currentGrade: 'A' }),
+      establishmentRow({ id: 'a2', currentGrade: 'A' }),
+      establishmentRow({ id: 'b1', currentGrade: 'B' }),
+      establishmentRow({ id: 'none', currentGrade: null }),
+    ]);
+    (service as any).violationsRepo = { find: jest.fn(async () => []) };
+
+    const result = await service.dashboard();
+    const byGrade = Object.fromEntries(result.gradeDistribution.map((g) => [g.grade, g.count]));
+
+    expect(byGrade['A']).toBe(2);
+    expect(byGrade['B']).toBe(1);
+    expect(byGrade['C']).toBe(0);
+    expect(byGrade['D']).toBe(0);
   });
 });
 
