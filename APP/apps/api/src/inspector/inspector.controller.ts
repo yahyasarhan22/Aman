@@ -1,0 +1,55 @@
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard, Roles, type AuthedRequest } from '../auth/auth.guard';
+import { InspectorService } from './inspector.service';
+import type {
+  CompletedTodayEntryDto,
+  EstablishmentBundleDto,
+  InspectionDetailDto,
+  QueueEntryDto,
+  SubmitInspectionDto,
+  SubmitInspectionResultDto,
+} from './inspector.dto';
+
+@Controller('api/inspector')
+@UseGuards(AuthGuard)
+@Roles('INSPECTOR', 'ADMIN')
+export class InspectorController {
+  constructor(private readonly inspector: InspectorService) {}
+
+  @Get('queue')
+  getQueue(@Req() req: AuthedRequest): Promise<QueueEntryDto[]> {
+    return this.inspector.getQueue(req.user!.sub);
+  }
+
+  @Get('completed-today')
+  getCompletedToday(@Req() req: AuthedRequest): Promise<CompletedTodayEntryDto[]> {
+    return this.inspector.getCompletedToday(req.user!.sub);
+  }
+
+  /** Called on "Start" — everything the offline app needs in one round trip. */
+  @Get('establishments/:id/bundle')
+  getBundle(@Param('id') id: string): Promise<EstablishmentBundleDto> {
+    return this.inspector.getBundle(id);
+  }
+
+  @Post('violations/:id/verify')
+  verify(@Param('id') id: string, @Req() req: AuthedRequest): Promise<{ ok: true }> {
+    return this.inspector.verifyViolation(id, req.user!.sub);
+  }
+
+  @Get('inspections/:id')
+  getInspectionDetail(
+    @Param('id') id: string,
+    @Req() req: AuthedRequest,
+  ): Promise<InspectionDetailDto> {
+    return this.inspector.getInspectionDetail(id, req.user!.sub);
+  }
+
+  @Post('inspections')
+  submit(
+    @Body() dto: SubmitInspectionDto,
+    @Req() req: AuthedRequest,
+  ): Promise<SubmitInspectionResultDto> {
+    return this.inspector.submitInspection(dto, req.user!.sub);
+  }
+}

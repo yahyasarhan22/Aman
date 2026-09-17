@@ -1,0 +1,560 @@
+<title>Aman Demo Run-Sheet</title>
+<style>
+  :root {
+    --ink: #0f3d3e;
+    --ink-2: #16211f;
+    --ink-muted: #5c6b68;
+    --primary: #117a65;
+    --primary-press: #0d6152;
+    --paper: #eef1ea;
+    --card: #ffffff;
+    --rule: rgba(15, 61, 62, 0.14);
+    --rule-strong: rgba(15, 61, 62, 0.3);
+    --grade-a: #1e8449;
+    --grade-b: #b7950b;
+    --grade-c: #ca6f1e;
+    --grade-d: #a93226;
+    --shadow: 0 1px 2px rgba(15, 61, 62, 0.06), 0 10px 28px -18px rgba(15, 61, 62, 0.55);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eaf2ef;
+      --ink-2: #dbe7e3;
+      --ink-muted: #93a8a3;
+      --primary: #34c9a8;
+      --primary-press: #59d9bc;
+      --paper: #0c1615;
+      --card: #12201e;
+      --rule: rgba(234, 242, 239, 0.12);
+      --rule-strong: rgba(234, 242, 239, 0.24);
+      --grade-a: #4fae72;
+      --grade-b: #d7ad3f;
+      --grade-c: #e08a49;
+      --grade-d: #d4695a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 32px -18px rgba(0, 0, 0, 0.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #eaf2ef;
+    --ink-2: #dbe7e3;
+    --ink-muted: #93a8a3;
+    --primary: #34c9a8;
+    --primary-press: #59d9bc;
+    --paper: #0c1615;
+    --card: #12201e;
+    --rule: rgba(234, 242, 239, 0.12);
+    --rule-strong: rgba(234, 242, 239, 0.24);
+    --grade-a: #4fae72;
+    --grade-b: #d7ad3f;
+    --grade-c: #e08a49;
+    --grade-d: #d4695a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 32px -18px rgba(0, 0, 0, 0.7);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink-2);
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .masthead {
+    background: var(--ink);
+    color: #eef4f2;
+    border-bottom: 3px solid var(--primary);
+  }
+  .masthead__inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .masthead__mark {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .masthead__divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.28);
+    align-self: center;
+  }
+  .masthead__sub {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.78);
+    letter-spacing: 0.02em;
+  }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  h1.title {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: clamp(28px, 4.5vw, 38px);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .subtitle {
+    margin-top: 8px;
+    font-size: 15px;
+    color: var(--ink-muted);
+  }
+  .total-time {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 16px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 12%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  section { display: flex; flex-direction: column; gap: 16px; }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* --- preflight checklist --- */
+  .checklist {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+  .check-row + .check-row { border-top: 1px solid var(--rule); }
+  .check-box {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 4px;
+  }
+  .check-body { display: flex; flex-direction: column; gap: 2px; }
+  .check-label { font-weight: 600; color: var(--ink); font-size: 14.5px; }
+  .check-detail { font-size: 13px; color: var(--ink-muted); }
+  .check-detail code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    background: color-mix(in srgb, var(--primary) 10%, var(--card));
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+
+  /* --- scene timeline --- */
+  .timeline { display: flex; flex-direction: column; gap: 14px; }
+
+  .scene {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 16px;
+  }
+  .scene__rail { display: flex; flex-direction: column; align-items: center; }
+  .scene__time {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--primary);
+    border-radius: 999px;
+    padding: 4px 0;
+    width: 52px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .scene__line {
+    flex: 1;
+    width: 2px;
+    background: var(--rule-strong);
+    margin-top: 6px;
+    min-height: 20px;
+  }
+  .scene:last-child .scene__line { display: none; }
+
+  .scene__card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .scene__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .scene__title {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 16px;
+  }
+  .scene__role {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+  .scene__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14.5px;
+  }
+  .scene__actions li { list-style: none; padding-inline-start: 16px; position: relative; }
+  .scene__actions li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.62em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--rule-strong);
+  }
+  ul.scene__actions { margin: 0; padding: 0; }
+  .scene__actions b { color: var(--ink); }
+  .scene__say {
+    margin-top: 4px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--primary) 7%, var(--card));
+    border-inline-start: 3px solid var(--primary);
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    font-style: italic;
+  }
+  .scene__say::before { content: "\201C"; font-style: normal; color: var(--primary); margin-inline-end: 2px; }
+
+  .grade-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  .g-a { background: var(--grade-a); }
+  .g-b { background: var(--grade-b); }
+
+  /* --- fallback box --- */
+  .fallback {
+    background: var(--card);
+    border: 1px dashed var(--rule-strong);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fallback__row { display: flex; gap: 10px; font-size: 14px; }
+  .fallback__row b { flex: none; color: var(--ink); min-width: 168px; }
+  .fallback__row span { color: var(--ink-muted); }
+
+  footer.attribution {
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    text-align: center;
+  }
+
+  @media (max-width: 520px) {
+    .scene { grid-template-columns: 40px 1fr; gap: 10px; }
+    .scene__time { width: 40px; font-size: 10.5px; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <span class="masthead__mark">أمان</span>
+    <span class="masthead__divider"></span>
+    <span class="masthead__sub">Demo Run-Sheet — recording script</span>
+  </div>
+</header>
+
+<main>
+  <div>
+    <h1 class="title">The Loop, Start to Finish</h1>
+    <p class="subtitle">One establishment, one complaint, one inspection — the full citizen&nbsp;→&nbsp;inspector&nbsp;→&nbsp;admin&nbsp;→&nbsp;public loop, in the order a camera should see it.</p>
+    <span class="total-time">~8:00 total run time</span>
+  </div>
+
+  <section>
+    <p class="eyebrow">Before you hit record</p>
+    <div class="checklist">
+      <div class="check-row">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <span class="check-label">Seed data is fresh</span>
+          <span class="check-detail">Already done this session — <code>npm run seed</code> ran clean: 15 establishments, 45 complaints, 4 users.</span>
+        </div>
+      </div>
+      <div class="check-row">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <span class="check-label">Tunnel is live</span>
+          <span class="check-detail"><code>https://absolute-investigated-italia-sailing.trycloudflare.com</code> — load it once on the phone right before recording. It changes if the terminal restarts.</span>
+        </div>
+      </div>
+      <div class="check-row">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <span class="check-label">Fresh QR sheet printed or on a second screen</span>
+          <span class="check-detail">Open <code>/admin/qr</code> from the tunnel URL (not localhost) so the codes encode the tunnel address, then screenshot or print the الفرن الذهبي code.</span>
+        </div>
+      </div>
+      <div class="check-row">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <span class="check-label">Three browser tabs open on the PC, pre-logged-in</span>
+          <span class="check-detail">Tab 1 — admin (<code>admin@nablus.ps</code>). Tab 2 — inspector (<code>inspector@nablus.ps</code>). Tab 3 — the public establishment page, ready to refresh. Password for all: <code>aman1234</code>.</span>
+        </div>
+      </div>
+      <div class="check-row">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <span class="check-label">Phone camera framed on the QR code, ready to scan on cue</span>
+          <span class="check-detail">This is scene 1 — don't scan it before recording starts.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The script</p>
+    <div class="timeline">
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">0:00</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Scan the QR code</span>
+            <span class="scene__role">Citizen · phone</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Point the phone camera at the الفرن الذهبي sticker. Tap the notification/link.</li>
+            <li>Phone opens the public page: grade badge, name, address, open-violations count.</li>
+          </ul>
+          <p class="scene__say">This is the only thing on the door — no app to install. Any phone camera reads it.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">0:40</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Read the public record</span>
+            <span class="scene__role">Citizen · phone</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Scroll: <b>grade B</b>, last inspection date, score 82/100, the one open violation (cold storage, owner already responded).</li>
+            <li>Scroll to inspection history — grade A→B trend visible.</li>
+          </ul>
+          <p class="scene__say">Everything here traces back to a real inspection. Nothing is typed in by hand.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">1:20</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Submit a complaint</span>
+            <span class="scene__role">Citizen · phone</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Tap <b>قدّم شكوى عن هذه المنشأة</b>.</li>
+            <li>Category: <b>حشرات أو قوارض</b>. Description: one real sentence, on camera, live.</li>
+            <li>Attach a photo from the camera roll (EXIF is stripped automatically — worth a line of narration).</li>
+            <li>Submit → reference number appears large on screen. Screenshot it, or read it aloud.</li>
+          </ul>
+          <p class="scene__say">No login, no account. The reference number is the only thing they need to check back later.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">2:20</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Triage and assign</span>
+            <span class="scene__role">Admin · PC, Tab 1</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Switch to the admin tab, already on <b>فرز الشكاوى</b>.</li>
+            <li>Refresh — the new complaint is at the top, photo thumbnail visible.</li>
+            <li>Pick <b>سامي عبد الله</b> from the inspector dropdown → <b>إسناد</b>.</li>
+            <li>Green confirmation banner appears.</li>
+          </ul>
+          <p class="scene__say">One click, and it's on a real inspector's queue — not a spreadsheet, not an email.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">3:10</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Open the inspector's queue</span>
+            <span class="scene__role">Inspector · PC, Tab 2</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Switch to the inspector tab, <b>جولة اليوم</b>.</li>
+            <li>Point at the summary strip: total assigned, and the مرتفعة / متوسطة / منخفضة counts.</li>
+            <li>الفرن الذهبي is #1 — read one or two of its <b>سبب الترتيب</b> reasons aloud (complaint pressure, prior violation).</li>
+          </ul>
+          <p class="scene__say">The ranking isn't a gut call — every line under it is a real, weighted reason.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">3:50</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Start the visit — context panel</span>
+            <span class="scene__role">Inspector · PC, Tab 2</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Tap <b>ابدأ التفتيش</b>.</li>
+            <li>The <b>سياق الزيارة</b> panel opens on top: the open cold-storage violation, and every pending complaint including the one just submitted, photo and all.</li>
+          </ul>
+          <p class="scene__say">Before they've answered a single checklist item, they already know exactly what to check first.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">4:40</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Walk one section of the checklist</span>
+            <span class="scene__role">Inspector · PC, Tab 2</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Mark two or three items <b>مطابق</b>, running score updates live in the header.</li>
+            <li>Mark the cold-storage item <b>مخالف</b> — measured value field appears, type <b>8</b>.</li>
+            <li>Try to advance without a photo — blocked, red notice: a critical failure needs evidence.</li>
+            <li>Attach a photo → unblocked, advance to the next section.</li>
+          </ul>
+          <p class="scene__say">A critical violation without a photo can't leave this screen — that rule is enforced, not just suggested.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">5:50</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Review and sign</span>
+            <span class="scene__role">Inspector · PC, Tab 2</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Skip to <b>المراجعة والإرسال</b> (fast-forward the remaining sections beforehand, off-camera).</li>
+            <li>Show the outcome row: previous grade → new grade, score, the one recorded violation with its auto-filled recommendation.</li>
+            <li>Sign in the signature pad.</li>
+            <li><b>إرسال التفتيش</b> → confirm dialog → confirm.</li>
+          </ul>
+          <p class="scene__say">This is final. Once it's sent, the record is the record — no quiet edits.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">6:40</span><span class="scene__line"></span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">The public page updates itself</span>
+            <span class="scene__role">Citizen · PC Tab 3 or phone</span>
+          </div>
+          <ul class="scene__actions">
+            <li>Refresh the public establishment page from earlier.</li>
+            <li>Grade badge changed live — <span class="grade-chip g-b">B</span> → whatever the new inspection produced. History list grew by one row.</li>
+          </ul>
+          <p class="scene__say">Same public page, no admin step in between. The grade only ever changes because a real inspection happened.</p>
+        </div>
+      </div>
+
+      <div class="scene">
+        <div class="scene__rail"><span class="scene__time">7:15</span></div>
+        <div class="scene__card">
+          <div class="scene__head">
+            <span class="scene__title">Close on the dashboard</span>
+            <span class="scene__role">Admin · PC, Tab 1</span>
+          </div>
+          <ul class="scene__actions">
+            <li><b>لوحة المعلومات</b> — grade distribution and complaints-over-time both moved.</li>
+            <li>One line to camera: registered establishments, complaints this month, avg. days to close.</li>
+          </ul>
+          <p class="scene__say">One QR code on a door turned into a graded, auditable inspection — start to finish, no paper in between.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">If something breaks on camera</p>
+    <div class="fallback">
+      <div class="fallback__row"><b>Tunnel URL changed</b><span>Ask me for the current one before you start — it's only stable for this recording session, not permanently.</span></div>
+      <div class="fallback__row"><b>Phone shows a stale page</b><span>Force-close Safari fully (not just switch tabs) and reopen the tunnel URL fresh.</span></div>
+      <div class="fallback__row"><b>Wrong establishment on top of the queue</b><span>Fine — say so on camera or just pick whichever establishment sits at #1; the reasons underneath are still real either way.</span></div>
+      <div class="fallback__row"><b>Need a clean restart mid-rehearsal</b><span>Re-run the seed script — wipes and rebuilds all 15 establishments and 45 complaints in a few seconds.</span></div>
+    </div>
+  </section>
+
+  <footer class="attribution">أمان — بلدية نابلس · صحة الأغذية</footer>
+</main>
